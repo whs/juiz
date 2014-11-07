@@ -2,7 +2,6 @@ import os
 import argparse
 
 from ..config import config
-from ..proj_config import config as project_config
 from .registry import registry
 
 class Main(object):

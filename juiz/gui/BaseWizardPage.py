@@ -63,18 +63,35 @@ class WizardInputListPage(BaseWizardPage):
 		return wx.StaticText(self, wx.ID_ANY, text)
 
 	def build_input(self, name):
-		attr = 'get_{0}'.format(name.lower().replace(' ', '_'))
-		value = ''
-		if hasattr(self, attr) or name in self._cache:
-			ls = self._cache[name] if name in self._cache else getattr(self, attr)()
-			if type(ls) in (dict, list):
-				if type(ls) == dict:
-					self._cache[name] = ls.items()
-				return wx.Choice(self, wx.ID_ANY, choices=[x[1] for x in self._cache[name]])
-			else:
-				value = ls
-				self._cache[name] = ls
-		return wx.TextCtrl(self, wx.ID_ANY, value=value)
+		result = self.get_input_type(name)
+		name_code = name.lower().replace(' ', '_')
+
+		if result == 'choice':
+			self._cache[name] = getattr(self, 'get_{0}_choices'.format(name_code))().items()
+			choice = wx.Choice(self, wx.ID_ANY, choices=[x[1] for x in self._cache[name]])
+			default = self.get_default_value(name)
+			if default:
+				index = next(index for (index, d) in enumerate(self._cache[name]) if d[0] == default)
+				choice.SetSelection(index)
+			return choice
+		elif result == 'file':
+			return wx.FilePickerCtrl(self, wx.ID_ANY, path=self.get_default_value(name))
+		else:
+			return wx.TextCtrl(self, wx.ID_ANY, value=self.get_default_value(name))
+	
+	def get_default_value(self, name):
+		name_code = name.lower().replace(' ', '_')
+		if hasattr(self, 'get_{0}'.format(name_code)):
+			return getattr(self, 'get_{0}'.format(name_code))()
+		return ''
+
+	def get_input_type(self, name):
+		name_code = name.lower().replace(' ', '_')
+		attr = 'get_{0}_type'.format(name_code)
+		result = 'text'
+		if hasattr(self, attr):
+			result = getattr(self, attr)()
+		return result
 
 	def on_show(self, event):
 		if event.GetPage() == self:
@@ -88,7 +105,7 @@ class WizardInputListPage(BaseWizardPage):
 		self.enable_forward(self.is_all_fields_filled())
 
 	def is_all_fields_filled(self):
-		return True not in [x[1].IsEmpty() for x in self._widgets]
+		return False not in [bool(x) for x in self.get_values()]
 
 	def __del__(self):
 		self.GetParent().Unbind(wx.wizard.EVT_WIZARD_PAGE_CHANGED, handler=self.on_show)
@@ -99,8 +116,9 @@ class WizardInputListPage(BaseWizardPage):
 			value = None
 			if isinstance(v, wx.Choice):
 				value = v.GetSelection()
-				attr = 'get_{0}'.format(k.lower().replace(' ', '_'))
-				value = getattr(self, attr)().keys()[value]
+				value = self._cache[k][value][0]
+			elif isinstance(v, wx.PickerBase):
+				value = v.GetPath()
 			else:
 				value = v.GetValue()
 			out.append(value)

@@ -7,6 +7,7 @@ import wx.wizard
 from . import CloudWizard
 from .BaseWizardPage import BaseWizardPage
 from ..config import config
+from .. import util
 
 class NewWizard(wx.wizard.Wizard):
 	def __init__(self, parent=None):
@@ -35,6 +36,9 @@ class NewWizard(wx.wizard.Wizard):
 
 		config_file = os.path.join(fp.get_path(), config.get('main', 'project_folder'), 'config.cfg')
 		cfg.write(open(config_file, 'w'))
+
+		id_file = open(os.path.join(fp.get_path(), config.get('main', 'project_folder'), 'id'), 'w')
+		id_file.write(util.random_id())
 
 	def show_error(self, message):
 		wx.MessageDialog(self.GetParent(), message, _('Error'), wx.OK | wx.CENTRE | wx.ICON_ERROR).ShowModal()
