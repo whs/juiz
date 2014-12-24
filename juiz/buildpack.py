@@ -72,3 +72,13 @@ def remove(name):
 
 	if name in _cfg['buildpack']:
 		del _cfg['buildpack'][name]
+
+def detect(project_path='.'):
+	for name in list().keys():
+		path = get_path(name)
+		detect = os.path.join(path, 'bin', 'detect')
+		try:
+			subprocess.check_call([detect, project_path], stdout=subprocess.PIPE)
+			return _cfg['buildpack'][name]
+		except subprocess.CalledProcessError:
+			pass

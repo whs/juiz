@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import wx.wizard
 
 class BaseWizardPage(wx.wizard.PyWizardPage):
@@ -23,32 +25,42 @@ class BaseWizardPage(wx.wizard.PyWizardPage):
 
 class WizardInputListPage(BaseWizardPage):
 	fields = []
-	_widgets = []
 	help_text = ''
 	hyperlink = {}
-	_cache = {}
+	nullable_field = []
 
 	def __init__(self, parent):
 		super(WizardInputListPage, self).__init__(parent)
+		self._widgets = OrderedDict()
+		self._cache = {}
+
 		outer_sizer = wx.BoxSizer(wx.VERTICAL)
 
-		help_text = wx.StaticText(self, -1, self.help_text)
-		help_text.Wrap(parent.GetSize().width - 140)
-		outer_sizer.Add(help_text, 0, wx.EXPAND)
+		if self.help_text:
+			help_text = wx.StaticText(self, -1, self.help_text)
+			help_text.Wrap(parent.GetPageSize().width)
+			outer_sizer.Add(help_text, 0, wx.EXPAND)
+			outer_sizer.AddSpacer(4)
 
 		for name, url in self.hyperlink.items():
 			link = wx.HyperlinkCtrl(self, wx.ID_ANY, name, url)
 			outer_sizer.Add(link, 0, 0)
+			outer_sizer.AddSpacer(2)
 
-		self.sizer = wx.GridSizer(0, 2, 5, 5)
+		outer_sizer.AddSpacer(10)
+
+		self.sizer = wx.FlexGridSizer(0, 2, 5, 15)
+		self.sizer.AddGrowableCol(1)
 
 		self.build_input_group()
 
-		outer_sizer.Add(self.sizer, 0, wx.EXPAND)
+		outer_sizer.Add(self.sizer, 1, wx.EXPAND)
 		self.SetSizer(outer_sizer)
 		
 		parent.Bind(wx.wizard.EVT_WIZARD_PAGE_CHANGED, self.on_show)
 		self.Bind(wx.EVT_TEXT, self.input_changed)
+		self.Bind(wx.EVT_FILEPICKER_CHANGED, self.input_changed)
+		self.Bind(wx.EVT_CHOICE, self.input_changed)
 
 	def build_input_group(self):
 		for i in self.fields:
@@ -57,27 +69,30 @@ class WizardInputListPage(BaseWizardPage):
 
 			input = self.build_input(i)
 			self.sizer.Add(input, 1, wx.EXPAND)
-			self._widgets.append((i, input))
+			self._widgets[i] = input
 
 	def build_label(self, text):
 		return wx.StaticText(self, wx.ID_ANY, text)
 
+	def format_field_name(self, name):
+		return name.lower().replace(' ', '_')
+
 	def build_input(self, name):
 		result = self.get_input_type(name)
-		name_code = name.lower().replace(' ', '_')
+		name_code = self.format_field_name(name)
 
 		if result == 'choice':
-			self._cache[name] = getattr(self, 'get_{0}_choices'.format(name_code))().items()
-			choice = wx.Choice(self, wx.ID_ANY, choices=[x[1] for x in self._cache[name]])
+			self._cache[name_code] = getattr(self, 'get_{0}_choices'.format(name_code))().items()
+			choice = wx.Choice(self, wx.NewId(), choices=[x[1] for x in self._cache[name_code]])
 			default = self.get_default_value(name)
 			if default:
-				index = next(index for (index, d) in enumerate(self._cache[name]) if d[0] == default)
+				index = next(index for (index, d) in enumerate(self._cache[name_code]) if d[0] == default)
 				choice.SetSelection(index)
 			return choice
 		elif result == 'file':
-			return wx.FilePickerCtrl(self, wx.ID_ANY, path=self.get_default_value(name))
+			return wx.FilePickerCtrl(self, wx.NewId(), path=self.get_default_value(name))
 		else:
-			return wx.TextCtrl(self, wx.ID_ANY, value=self.get_default_value(name))
+			return wx.TextCtrl(self, wx.NewId(), value=self.get_default_value(name))
 	
 	def get_default_value(self, name):
 		name_code = name.lower().replace(' ', '_')
@@ -93,6 +108,12 @@ class WizardInputListPage(BaseWizardPage):
 			result = getattr(self, attr)()
 		return result
 
+	def get_widget(self, name):
+		try:
+			return self._widgets[name]
+		except KeyError:
+			return None
+
 	def on_show(self, event):
 		if event.GetPage() == self:
 			return self.check_allow_forward()
@@ -105,21 +126,28 @@ class WizardInputListPage(BaseWizardPage):
 		self.enable_forward(self.is_all_fields_filled())
 
 	def is_all_fields_filled(self):
-		return False not in [bool(x) for x in self.get_values()]
+		return all([bool(v) for k, v in self.get_values_dict(False).iteritems() if k not in self.nullable_field])
 
 	def __del__(self):
 		self.GetParent().Unbind(wx.wizard.EVT_WIZARD_PAGE_CHANGED, handler=self.on_show)
 
-	def get_values(self):
-		out = []
-		for k,v in self._widgets:
-			value = None
-			if isinstance(v, wx.Choice):
-				value = v.GetSelection()
-				value = self._cache[k][value][0]
-			elif isinstance(v, wx.PickerBase):
-				value = v.GetPath()
-			else:
-				value = v.GetValue()
-			out.append(value)
+	def get_values_dict(self, format_name=True):
+		out = OrderedDict()
+		for k,v in self._widgets.iteritems():
+			if format_name:
+				k = self.format_field_name(k)
+			value = self.get_widget_value(k, v)
+			out[k] = value
 		return out
+
+	def get_widget_value(self, field, widget):
+		if isinstance(widget, wx.Choice):
+			value = widget.GetSelection()
+			return self._cache[self.format_field_name(field)][value][0]
+		elif isinstance(widget, wx.PickerBase):
+			return widget.GetPath()
+		else:
+			return widget.GetValue()
+
+	def get_settings(self):
+		return self.get_values_dict()

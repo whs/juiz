@@ -1,33 +1,37 @@
-import importlib
-
 import wx
 
+from .. import util
 from .BaseWizardPage import BaseWizardPage
 from libcloud.compute.types import Provider
 
 class CloudPickProviderWizardPage(BaseWizardPage):
 	providers = {
 		'Amazon Elastic Compute Cloud (EC2)': {
-			'id': 100001,
+			'id': 5001,
 			'next': 'juiz.gui.aws.AWSCloudConfigWizardPage',
 			'provider': Provider.EC2
 		},
 		'DigitalOcean': {
-			'id': 100002,
+			'id': 5002,
 			'next': 'juiz.gui.digitalocean.DOCloudConfigWizardPage',
 			'provider': Provider.DIGITAL_OCEAN
 		},
-		'Apache CloudStack': {
-			'id': 100003,
-			'provider': Provider.CLOUDSTACK
+		'CloudStack': {
+			'id': 5003,
+			'provider': Provider.CLOUDSTACK,
+			'next': 'juiz.gui.cloudstack.CloudStackCloudConfigWizardPage',
 		},
+		# 'OpenStack': {
+		# 	'id': 5004,
+		# 	'provider': Provider.OPENSTACK,
+		# },
 	}
 
 	def __init__(self, parent):
 		super(CloudPickProviderWizardPage, self).__init__(parent)
 		outer_sizer = wx.BoxSizer(wx.VERTICAL)
 		help_text = wx.StaticText(self, -1, _('Select cloud provider to configure:'))
-		help_text.Wrap(parent.GetSize().width - 140)
+		help_text.Wrap(parent.GetPageSize().width)
 		outer_sizer.Add(help_text, 0, wx.EXPAND)
 		outer_sizer.AddSpacer(10)
 
@@ -38,6 +42,7 @@ class CloudPickProviderWizardPage(BaseWizardPage):
 
 		for radio in self.radio:
 			outer_sizer.Add(radio, 0, wx.EXPAND)
+			outer_sizer.AddSpacer(2)
 		
 		self.SetSizer(outer_sizer)
 		self.pick_radio(self.providers.values()[0])
@@ -50,8 +55,13 @@ class CloudPickProviderWizardPage(BaseWizardPage):
 			self.enable_forward(True)
 		event.Skip()
 
+	__is_first = True
+
 	def create_radio(self, name, id=wx.ID_ANY):
 		radio = wx.RadioButton(self, id, name)
+		if self.__is_first:
+			self.__is_first = False
+			radio.SetValue(True)
 		self.radio.append(radio)
 
 	def radio_change(self, event):
@@ -73,14 +83,9 @@ class CloudPickProviderWizardPage(BaseWizardPage):
 		raise IndexError, 'ID is not present in provider list'
 
 	def pick_radio(self, data):
-		module = '.'.join(data['next'].split('.')[:-1])
-		cls = data['next'].split('.')[-1]
-		if self.next:
-			self.next.__del__()
-		self.next = getattr(importlib.import_module(module), cls)(self.GetParent())
+		self.next = util.import_by_name(data['next'])(self.GetParent())
 		self.next.prev = self
 
 	def dump_config(self, config):
 		data = self.get_selected_data()
-		config.add_section('main')
 		config.set('main', 'target', data['provider'])

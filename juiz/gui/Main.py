@@ -5,15 +5,13 @@ from ..config import config
 from ..project import *
 from ..ui.Main import Main as MainGen
 from .NewWizard import NewWizard
+from .Deploy import Deploy
 
 from wx.lib.agw import ultimatelistctrl as ulc
 
 class Main(MainGen):
 	ids = {
-		'file_new': 1000,
-		'file_open': 1001,
-		'exit': 3000,
-		'proj_config': 2000,
+		'deploy': 1001,
 		'bp_manage': 3001
 	}
 	project = None
@@ -22,9 +20,12 @@ class Main(MainGen):
 	def __init__(self, project=None, *args, **kwargs):
 		self.project = project
 		super(Main, self).__init__(*args, **kwargs)
-		self.Connect(self.ids['file_new'], -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_new)
-		self.Connect(self.ids['file_open'], -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_open)
-		self.Connect(self.ids['exit'], -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_exit)
+		self.Center()
+
+		self.Connect(wx.ID_NEW, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_new)
+		self.Connect(wx.ID_OPEN, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_open)
+		self.Connect(wx.ID_EXIT, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_exit)
+		self.Connect(self.ids['deploy'], -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_deploy)
 		
 		if self.project:
 			self.setup_project()
@@ -54,6 +55,9 @@ class Main(MainGen):
 
 	def menu_exit(self, event):
 		self.Close(True)
+
+	def menu_deploy(self, event):
+		Deploy(self.project, self).Show()
 
 	@classmethod
 	def open_project(cls, project):

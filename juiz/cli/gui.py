@@ -3,7 +3,7 @@ import wx
 
 from .. import bootstrap
 from ..project import *
-from ..gui import main
+from .. import gui
 from .base import Command
 
 def command(fn):
@@ -22,13 +22,13 @@ class GUI(Command):
 	@command
 	def gui(self, args):
 		project = None
-		main.bootstrap()
+		gui.bootstrap()
 		if args.project_dir:
 			try:
 				project = Project(os.path.abspath(os.path.expanduser(args.project_dir)))
 			except NoProjectException:
-				return main.error('Project configuration folder not found.')
-		main.run(project)
+				return gui.error('Project configuration folder not found.')
+		gui.run(project)
 
 
 gui_cmd = GUI()

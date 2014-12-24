@@ -11,7 +11,7 @@ class ConfigMixin:
 
 	def __get(self, section, name, *args, **kwargs):
 		try:
-			return _def_get(section, name, *args, **kwargs)
+			return self._def_get(section, name, *args, **kwargs)
 		except ConfigParser.NoOptionError:
 			return config.get('project:{0}'.format(section), name, *args, **kwargs)
 
@@ -21,9 +21,9 @@ class ConfigMixin:
 	def __init__(self, *args, **kwargs):
 		super(ConfigMixin, self).__init__(*args, **kwargs)
 
-		_def_get = self.config.get
+		self._def_get = self.config.get
 		self.config.get = self.__get
-		_def_has_option = self.config.has_option
+		self._def_has_option = self.config.has_option
 		self.config.has_option = self.__has_option
 
 	def load_config(self,path=''):
