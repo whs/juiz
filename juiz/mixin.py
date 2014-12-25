@@ -6,16 +6,18 @@ import re
 from .config import config
 from .machine import Machine
 
-class ConfigMixin:
+__all__ = ['ConfigMixin', 'MachineMixin']
+
+class ConfigMixin(object):
 	config = ConfigParser.ConfigParser()
 
 	def __get(self, section, name, *args, **kwargs):
 		try:
 			return self._def_get(section, name, *args, **kwargs)
-		except ConfigParser.NoOptionError:
+		except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
 			return config.get('project:{0}'.format(section), name, *args, **kwargs)
 
-	def _has_option(self, section, name, *args, **kwargs):
+	def __has_option(self, section, name, *args, **kwargs):
 		return self._def_has_option(section, name, *args, **kwargs) or config.has_option('project:{0}'.format(section), name, *args, **kwargs)
 
 	def __init__(self, *args, **kwargs):
@@ -37,7 +39,7 @@ class ConfigMixin:
 			fcntl.lockf(fp, fcntl.LOCK_UN)
 			fp.flush()
 
-class MachineMixin:
+class MachineMixin(object):
 	def list_machines(self):
 		return [
 			self.get_machine(re.sub('^machine:', '', x))

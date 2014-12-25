@@ -2,10 +2,11 @@ import os
 
 from .mixin import *
 from .deploy import Deployable
+from .config import config
 
 __all__ = ['Project', 'NoProjectException']
 
-class Project(object, ConfigMixin, MachineMixin, Deployable):
+class Project(ConfigMixin, MachineMixin, Deployable):
 	root = None
 
 	def __init__(self, path, *args, **kwargs):

@@ -12,7 +12,7 @@ class Deploy(LogWindow):
 
 	def __init__(self, project, *args, **kwargs):
 		self.project = project
-		super(Deploy, self).__init__(*args, **kwargs)
+		super(Deploy, self).__init__(style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER, *args, **kwargs)
 		self.Center()
 
 		# disable closing
@@ -54,15 +54,13 @@ class Deploy(LogWindow):
 		elif record.levelno == LOG_PROGRESS_TOTAL:
 			self.progressbar.SetRange(self.progressbar.GetRange() + int(record.msg))
 			return
-		if record.levelno in (LOG_PROGRESS, LOG_PROGRESS_TOTAL):
-			return
 
 		if record.levelno in (logging.ERROR, logging.CRITICAL):
 			self.log.SetDefaultStyle(wx.TextAttr(wx.RED))
 		elif record.levelno == logging.WARNING:
 			self.log.SetDefaultStyle(wx.TextAttr(wx.Colour(239, 204, 0)))
 		elif record.levelno == logging.DEBUG:
-			self.log.SetDefaultStyle(wx.TextAttr(wx.LIGHT_GREY))
+			self.log.SetDefaultStyle(wx.TextAttr(wx.Colour(150, 150, 150)))
 		else:
 			self.log.SetDefaultStyle(wx.TextAttr())
 		self.log.AppendText(record.preformat + '\n')
@@ -85,7 +83,6 @@ class DeployLogToWindow(logging.Handler):
 	def __init__(self, wnd, *args, **kwargs):
 		super(DeployLogToWindow, self).__init__(*args, **kwargs)
 		self.wnd = wnd
-		# self.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
 
 	def emit(self, record):
 		record.preformat = self.format(record)

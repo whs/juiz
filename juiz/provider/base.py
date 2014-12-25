@@ -1,8 +1,8 @@
 import os
 import logging
 
-from .. import buildpack, deploy
-from ..util import memoized, random_id
+from .. import deploy
+from ..util import memoized
 
 from libcloud.compute.providers import get_driver
 
@@ -14,22 +14,13 @@ class BaseProvider(object):
 		self.config = project.config
 
 		self.log = logging.getLogger('deploy')
-		self.log.log(deploy.LOG_PROGRESS_TOTAL, 3)
+		self.log.log(deploy.LOG_PROGRESS_TOTAL, 2*len(self.project.list_machines()))
 		self.config_check()
-		self.detect()
 		self.get_driver()
 
 	def deploy(self):
 		out = self.create_machines()
 		return out
-
-	def detect(self):
-		self.buildpack = buildpack.detect(self.project.root)
-		if not self.buildpack:
-			raise NoBuildpackError
-
-		self.log.info('Using buildpack: %s', self.buildpack['name'])
-		self.log.log(deploy.LOG_PROGRESS, 1)
 
 	def config_check(self):
 		if not self.config.has_option('main', 'target'):
@@ -66,14 +57,15 @@ class BaseProvider(object):
 			formatted_name = 'juiz-{0}-{1}'.format(self.project.id, machine.name)
 			try:
 				node = [x for x in nodes if x.name == formatted_name][0]
-				self.log.info('%s is already exists', machine.name)
+				self.log.info('Machine %s is already exists', machine.name)
+				self.log.log(deploy.LOG_PROGRESS, 2)
 			except IndexError:
 				node = self.create_machine(machine, formatted_name)
 			machines[machine.name] = {'node': node, 'ip': node.public_ips[0], 'name': machine.name}
 		return machines
 
 	def create_machine(self, machine, formatted_name):
-		self.log.info('Creating %s', machine.name)
+		self.log.info('Creating machine %s', machine.name)
 		self.pre_create_machine(machine)
 		node = self.driver.create_node(
 			name=formatted_name,
@@ -86,7 +78,7 @@ class BaseProvider(object):
 		self.post_create_machine(machine, node)
 		self.log.log(deploy.LOG_PROGRESS, 1)
 		self.log.info('Waiting for %s to up', machine.name)
-		self.driver.wait_until_running([node])[0]
+		node, ip = self.driver.wait_until_running([node])[0]
 		self.log.log(deploy.LOG_PROGRESS, 1)
 		self.log.info('%s created', machine.name)
 		return node
@@ -126,6 +118,4 @@ class BaseProvider(object):
 		return {}
 
 class ConfigError(StandardError):
-	pass
-class NoBuildpackError(StandardError):
 	pass
