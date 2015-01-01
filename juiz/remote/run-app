@@ -1,7 +1,19 @@
 #!/bin/bash
+# Parts from Heroku's buildpack
+
 # load environment
+WHITELIST=${2:-''}
+BLACKLIST=${3:-'^(GIT_DIR|PYTHONHOME|LD_LIBRARY_PATH|LIBRARY_PATH|PATH)$'}
+ENV_DIR=/var/juiz/environment
+
+for e in $(ls $ENV_DIR); do
+	echo "$e" | grep -E "$WHITELIST" | grep -qvE "$BLACKLIST" &&
+	export "$e=$(cat $ENV_DIR/$e)"
+	:
+done
 for i in /app/.profile.d/*; do
 	source $i
 done
+
 # sometimes $1 contains shell substitution like $PORT
 exec bash -c "$1"

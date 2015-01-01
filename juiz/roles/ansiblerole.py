@@ -12,10 +12,11 @@ class AnsibleRole(Role):
 	def __init__(self, *args, **kwargs):
 		super(AnsibleRole, self).__init__(*args, **kwargs)
 
-	def run(self, project, log, inventory):
+	def run(self, project, log, inventory, env):
 		self.project = project
 		self.log = log
 		self.inventory = inventory
+		self.env = env
 
 		self.ansible_stats = AggregateStats()
 		self.ansible_cb = LogCallback(self.log)
@@ -46,8 +47,15 @@ class AnsibleRole(Role):
 		return {
 			'project': self.project,
 			'buildpack': self.project.buildpack,
-			'runtime_dir': '/var/juiz/remote'
+			'runtime_dir': '/var/juiz/remote',
+			'env': self.env
 		}
+
+	def get_ip_of_role(self, roles=None):
+		if not roles:
+			roles = self.name
+		hosts = self.inventory.get_hosts(roles)
+		return [x.vars['ansible_ssh_host'] for x in hosts]
 
 class LogCallback(object):
 	def __init__(self, log):

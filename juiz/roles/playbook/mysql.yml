@@ -1,2 +1,21 @@
 ---
 - hosts: mysql
+  tasks:
+  - name: install mariadb
+    yum: pkg=mariadb-server state=latest
+  - name: allow mysql access from web machines
+    firewalld: rich_rule='rule family="ipv4" service name="mysql" source address="{{item}}" accept' state=enabled permanent=true
+    with_items: web_ip
+    notify:
+    - reload firewalld
+  - name: start mariadb
+    service: name=mariadb enabled=yes state=started
+  - name: secure root password
+    mysql_user: name=root password={{root_pw}} check_implicit_admin=yes login_password={{root_pw}} login_user=root
+  - name: create app database
+    mysql_db: name=app collation=utf8_general_ci encoding=utf8 login_password={{root_pw}} login_user=root
+  - name: create app user
+    mysql_user: name=app host=% password={{app_pw}} priv=app.*:ALL login_password={{root_pw}} login_user=root
+  handlers:
+  - name: reload firewalld
+    command: /usr/bin/firewall-cmd --reload

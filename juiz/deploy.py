@@ -100,8 +100,10 @@ class Deployable(object):
 	def run_playbooks(self, inventory):
 		roles = self.list_roles(inventory)
 		self.__log.log(LOG_PROGRESS_TOTAL, len(roles))
+		env = {}
 		for item in roles:
-			item.run(self, self.__log, inventory)
+			item.run(self, self.__log, inventory, env)
+			env = dict(env.items() + item.get_env().items())
 
 			# cleanup
 			inventory.lift_restriction()

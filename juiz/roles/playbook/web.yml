@@ -2,7 +2,10 @@
 - hosts: web
   vars:
     app_dir: /var/juiz/source
+    cache_dir: /var/juiz/build_cache
+    env_dir: /var/juiz/environment
   tasks:
+  # system
   - name: setup nginx repo
     copy: src=../data/web/nginx.repo dest=/etc/yum.repos.d/nginx.repo
   - name: install dependencies
@@ -17,44 +20,64 @@
       - nginx
       - MySQL-python
       - mariadb-devel
+      - gcc
+  - name: create app user
+    user: name=app createhome=no home={{app_dir}} shell=/sbin/nologin
+
+  # env
+  - name: create environment directory
+    file: path={{env_dir}} state=directory
+  - name: dump environment to directory
+    copy: dest={{env_dir}}/{{item.key}} content={{item.value}} owner=app
+    with_dict: env
+
+  # buildpack
   - name: clone buildpack
     git: repo={{buildpack.source}} dest=/var/juiz/buildpack update=yes
     notify:
     - compile source
-  - name: create app user
-    user: name=app createhome=no home={{app_dir}} shell=/sbin/nologin
+
+  # source
   - name: upload source
     synchronize: src={{project.root}}/ dest={{app_dir}} recursive=yes delete=yes
     notify:
     - compile source
+
+  # compile
   - meta: flush_handlers
   - name: generate units
     command: /usr/bin/python2 /var/juiz/remote/unit-generator.py
     notify:
     - reload systemd
   - meta: flush_handlers
+
+  # services
   - name: enable web unit
-    service: name=juiz-web.service enabled=yes state=restarted
+    service: name=juiz-web enabled=yes state=restarted
   - name: generate nginx configuration
     template: src=../data/web/nginx.conf dest=/etc/nginx/conf.d/default.conf owner=root mode=640
     notify:
     - reload nginx
+
+  # firewall
   - name: enable firewall for http
     firewalld: service=http permanent=true state=enabled
     notify:
     - reload firewalld
   handlers:
   - name: compile source
-    shell: "/var/juiz/buildpack/bin/compile {{app_dir}} /var/juiz/build_cache 2>&1 | tee /var/juiz/compile.log"
+    shell: "/var/juiz/buildpack/bin/compile {{app_dir}} {{cache_dir}} {{env_dir}} 2>&1 | tee /var/juiz/compile.log"
     environment:
       STACK: cedar-14
     notify:
     - move source
   - name: move source
     shell: "rm -r /app; cp -r {{app_dir}} /app && chown -R app /app"
+
+  # services
   - name: reload systemd
     command: /usr/bin/systemctl daemon-reload
   - name: reload nginx
-    service: name=nginx.service enabled=yes state=reloaded
+    service: name=nginx enabled=yes state=reloaded
   - name: reload firewalld
     command: /usr/bin/firewall-cmd --reload

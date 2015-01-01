@@ -8,6 +8,7 @@ __all__ = ['Project', 'NoProjectException']
 
 class Project(ConfigMixin, MachineMixin, Deployable):
 	root = None
+	id = None
 
 	def __init__(self, path, *args, **kwargs):
 		super(Project, self).__init__(*args, **kwargs)

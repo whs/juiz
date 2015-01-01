@@ -8,6 +8,9 @@ User=app
 ReadOnlyDirectories=/
 ReadWriteDirectories=/tmp
 Environment="PORT=21645"
+{%- if key == "web" %}
+Restart=on-failure
+{%- endif %}
 
 {%- if key == "web" %}
 [Install]
