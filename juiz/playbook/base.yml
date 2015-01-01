@@ -1,5 +1,0 @@
----
-- hosts: all
-  tasks:
-  - name: create working directory
-    file: path=/var/juiz state=directory
