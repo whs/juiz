@@ -1,6 +1,7 @@
+from juiz.gui.wizard.page.BaseWizardPage import WizardInputListPage
+from juiz.gui.wizard.page.CloudConfigPage import CloudConfigPage
+
 from libcloud.compute.types import Provider
-from .BaseWizardPage import WizardInputListPage
-from .CloudConfigPage import CloudConfigPage
 
 CONFIG_SECTION = 'target:{0}'.format(Provider.DIGITAL_OCEAN)
 

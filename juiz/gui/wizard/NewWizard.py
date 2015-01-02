@@ -4,10 +4,10 @@ import ConfigParser
 import wx
 import wx.wizard
 
-from . import CloudWizard
-from .BaseWizardPage import BaseWizardPage
-from ..config import config
-from .. import util
+from .page import CloudWizard
+from .page.BaseWizardPage import BaseWizardPage
+from juiz.config import config
+from juiz import util
 
 class NewWizard(wx.wizard.Wizard):
 	def __init__(self, parent=None):

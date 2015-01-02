@@ -5,7 +5,7 @@ import wx
 from libcloud.compute.providers import get_driver
 
 from .BaseWizardPage import WizardInputListPage
-from .event import SimpleEvent, ValueEvent
+from juiz.gui.event import SimpleEvent, ValueEvent
 
 class CloudConfigPage(WizardInputListPage):
 	fields = ['Location', 'Size', 'Image']

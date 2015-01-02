@@ -1,10 +1,10 @@
 import os
 import wx
 
-from ..config import config
 from ..project import *
 from ..ui.Main import Main as MainGen
-from .NewWizard import NewWizard
+from .wizard.NewWizard import NewWizard
+from .wizard.NewMachineWizard import NewMachineWizard
 from .Deploy import Deploy
 
 from wx.lib.agw import ultimatelistctrl as ulc
@@ -16,6 +16,16 @@ class Main(MainGen):
 	}
 	project = None
 	close_on_new = False
+	_changed = False
+	
+	@property
+	def changed(self):
+	    return self._changed
+	@changed.setter
+	def changed(self, value):
+		self._changed = value
+		changed = '*' if value else ''
+		self.SetTitle('{0}{1} - Juiz'.format(self.project.name, changed))
 
 	def __init__(self, project=None, *args, **kwargs):
 		self.project = project
@@ -26,6 +36,8 @@ class Main(MainGen):
 		self.Connect(wx.ID_OPEN, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_open)
 		self.Connect(wx.ID_EXIT, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_exit)
 		self.Connect(self.ids['deploy'], -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_deploy)
+		self.Bind(wx.EVT_BUTTON, self.add_machine, id=wx.ID_ADD)
+		self.Bind(wx.EVT_CLOSE, self.on_close)
 		
 		if self.project:
 			self.setup_project()
@@ -59,6 +71,12 @@ class Main(MainGen):
 	def menu_deploy(self, event):
 		Deploy(self.project, self).Show()
 
+	def on_close(self, event):
+		if event.CanVeto() and self.changed:
+			if wx.MessageBox(_('The configuration have not been saved. Continue closing?'), _('Unsaved change'), wx.ICON_QUESTION | wx.YES_NO) == wx.NO:
+				return event.Veto()
+		event.Skip()
+
 	@classmethod
 	def open_project(cls, project):
 		wnd = Main(project, None)
@@ -80,3 +98,8 @@ class Main(MainGen):
 		for index, machine in enumerate(self.project.list_machines()):
 			self.machine_list.InsertStringItem(index, machine.name)
 			self.machine_list.SetStringItem(index, 1, ', '.join(machine.roles))
+
+	def add_machine(self, event):
+		if NewMachineWizard(self.project, self).run():
+			self.update_machine()
+			self.changed = True

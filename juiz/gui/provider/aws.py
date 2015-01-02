@@ -1,7 +1,7 @@
 from libcloud.compute.types import Provider
 
-from .BaseWizardPage import WizardInputListPage
-from .CloudConfigPage import CloudConfigPage
+from juiz.gui.wizard.page.BaseWizardPage import WizardInputListPage
+from juiz.gui.wizard.page.CloudConfigPage import CloudConfigPage
 
 class AWSCloudConfigWizardPage(WizardInputListPage):
 	fields = ['Access Key', 'Access Secret', 'Endpoint', 'Region']

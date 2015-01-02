@@ -1,25 +1,26 @@
 import wx
 
-from .. import util
-from .BaseWizardPage import BaseWizardPage
 from libcloud.compute.types import Provider
+
+from juiz import util
+from .BaseWizardPage import BaseWizardPage
 
 class CloudPickProviderWizardPage(BaseWizardPage):
 	providers = {
 		'Amazon Elastic Compute Cloud (EC2)': {
 			'id': 5001,
-			'next': 'juiz.gui.aws.AWSCloudConfigWizardPage',
+			'next': 'juiz.gui.provider.aws.AWSCloudConfigWizardPage',
 			'provider': Provider.EC2
 		},
 		'DigitalOcean': {
 			'id': 5002,
-			'next': 'juiz.gui.digitalocean.DOCloudConfigWizardPage',
+			'next': 'juiz.gui.provider.digitalocean.DOCloudConfigWizardPage',
 			'provider': Provider.DIGITAL_OCEAN
 		},
 		'CloudStack': {
 			'id': 5003,
 			'provider': Provider.CLOUDSTACK,
-			'next': 'juiz.gui.cloudstack.CloudStackCloudConfigWizardPage',
+			'next': 'juiz.gui.provider.cloudstack.CloudStackCloudConfigWizardPage',
 		},
 		# 'OpenStack': {
 		# 	'id': 5004,
