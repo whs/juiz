@@ -1,8 +1,11 @@
 ---
 - hosts: mysql
   tasks:
-  - name: install mariadb
-    yum: pkg=mariadb-server state=latest
+  - name: install dependencies
+    yum: pkg={{item}} state=latest
+    with_items:
+      - MySQL-python
+      - mariadb-server
   - name: allow mysql access from web machines
     firewalld: rich_rule='rule family="ipv4" service name="mysql" source address="{{item}}" accept' state=enabled permanent=true
     with_items: web_ip

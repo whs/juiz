@@ -7,6 +7,7 @@ class Machine(object):
 	def __init__(self, name):
 		self.name = name
 		self.roles = []
+		self.env = {}
 
 	@classmethod
 	def from_config(cls, name, config):
@@ -16,5 +17,7 @@ class Machine(object):
 		for role, val in config.items(key):
 			if re.match('^role[0-9]+$', role):
 				machine.roles.append(val)
+			if role.startswith('env_'):
+				machine.env[role.replace('env_', '', 1)] = val
 
 		return machine

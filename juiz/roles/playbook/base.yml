@@ -1,5 +1,7 @@
 ---
 - hosts: all
+  vars:
+    env_dir: /var/juiz/environment
   tasks:
   - name: wait for ssh to start
     local_action: "wait_for port=22 host={{ansible_ssh_host}} search_regex=OpenSSH"
@@ -14,3 +16,8 @@
     service: name=firewalld.service enabled=yes state=started
   - name: copy juiz runtime
     synchronize: src={{runtime}}/ dest={{runtime_dir}} recursive=yes delete=yes
+  - name: create environment directory
+    file: path={{env_dir}} state=directory
+  - name: dump host environment
+    copy: dest={{env_dir}}/{{item.key}} content={{item.value}} owner=app
+    with_dict: host_env

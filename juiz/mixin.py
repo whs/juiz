@@ -26,6 +26,9 @@ class ConfigMixin(object):
 	def __init__(self, *args, **kwargs):
 		super(ConfigMixin, self).__init__(*args, **kwargs)
 
+		# case sensitive
+		self.config.optionxform = str
+
 		self._def_get = self.config.get
 		self.config.get = self.__get
 		self._def_has_option = self.config.has_option

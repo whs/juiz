@@ -1,6 +1,6 @@
 import wx
 
-class BaseRoleConfig(wx.Panel):
+class BaseRoleConfig(wx.Window):
 	def __init__(self, parent, project, machine, *args, **kwargs):
 		super(BaseRoleConfig, self).__init__(parent, *args, **kwargs)
 		self.project = project

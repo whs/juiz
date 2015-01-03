@@ -13,12 +13,20 @@ class MySQLRole(AnsibleRole):
 	mysql_user='app'
 
 	def get_root_password(self):
-		# TODO: Ask this from the user
-		return hashlib.sha256(self.project.id).hexdigest()
+		host = self.inventory.get_hosts(self.name)[0]
+
+		if 'mysql_root' in host.vars and host.vars['mysql_root']:
+			return host.vars['mysql_root']
+		else:
+			return hashlib.sha256(self.project.id).hexdigest()
 
 	def get_app_password(self):
-		# TODO: Ask this from the user
-		return hashlib.sha256(self.project.id).hexdigest()
+		host = self.inventory.get_hosts(self.name)[0]
+
+		if 'mysql_app' in host.vars and host.vars['mysql_app']:
+			return host.vars['mysql_app']
+		else:
+			return hashlib.sha256(self.project.id).hexdigest()
 
 	def get_ansible_vars(self):
 		base = super(MySQLRole, self).get_ansible_vars()

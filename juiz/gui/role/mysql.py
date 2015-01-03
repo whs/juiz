@@ -29,7 +29,9 @@ class MySQLMachineConfig(BaseRoleConfig):
 
 		outer_sizer.Add(sizer, 0, wx.EXPAND)
 
-		text = wx.StaticText(self, -1, _('Will save in plain text. Empty password will use hashed project ID as password.'))
+		outer_sizer.AddSpacer(5)
+
+		text = wx.StaticText(self, -1, _('Will save in plain text. Empty password will use\nhashed project ID as password.'))
 		outer_sizer.Add(text, 0, wx.EXPAND)
 
 		self.SetSizer(outer_sizer)
