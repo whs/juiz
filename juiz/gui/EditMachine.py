@@ -12,7 +12,7 @@ class EditMachine(Base):
 		self.role_panel = {}
 
 		self.name.SetValue(machine.name)
-		self.list_box_1.SetCheckedStrings(machine.roles)
+		self.roles.SetCheckedStrings(machine.roles)
 		self.SetTitle(_('Editing {}').format(machine.name))
 
 		self.Bind(wx.EVT_BUTTON, self.on_save, id=wx.ID_SAVE)
@@ -37,7 +37,7 @@ class EditMachine(Base):
 		self.project.config.remove_section(section)
 		self.project.config.add_section(section)
 
-		for ind, name in enumerate(self.list_box_1.GetCheckedStrings()):
+		for ind, name in enumerate(self.roles.GetCheckedStrings()):
 			self.project.config.set(section, 'role{}'.format(ind), name)
 
 		for panel in self.role_panel.values():
@@ -49,7 +49,7 @@ class EditMachine(Base):
 		self.Close()
 
 	def on_list_changed(self, event):
-		checked = self.list_box_1.GetCheckedStrings()
+		checked = self.roles.GetCheckedStrings()
 		sizer = self.panel.GetSizer()
 
 		for name in checked:
