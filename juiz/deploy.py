@@ -67,9 +67,14 @@ class Deployable(object):
 
 	def build_host(self, node):
 		machine = Host(node['name'])
+
+		for key, value in self.config.items('machine:{}'.format(node['name'])):
+			machine.set_variable(key, value)
+
 		machine.set_variable('ansible_ssh_user', 'root')
 		machine.set_variable('ansible_ssh_host', node['ip'])
 		machine.set_variable('ansible_ssh_private_key_file', self.config.get('main', 'ssh_key'))
+
 		return machine
 
 	def build_inventory(self, nodes):

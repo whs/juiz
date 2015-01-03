@@ -7,6 +7,8 @@ class MySQLRole(AnsibleRole):
 	name = 'mysql'
 	priority = 3000
 
+	machine_config_gui = 'juiz.gui.role.mysql.MySQLMachineConfig'
+
 	# must be changed in playbook too
 	mysql_user='app'
 

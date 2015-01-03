@@ -54,10 +54,10 @@ class Main(wx.Frame):
 		# Tool Bar end
 		self.notebook_1 = wx.Notebook(self, wx.ID_ANY, style=0)
 		self.notebook_1_pane_1 = wx.Panel(self.notebook_1, wx.ID_ANY)
-		self.machine_list = UltimateListCtrl(self.notebook_1_pane_1, wx.ID_ANY, agwStyle=wx.LC_REPORT|wx.LC_VRULES|wx.LC_HRULES)
+		self.machine_list = UltimateListCtrl(self.notebook_1_pane_1, 5000, agwStyle=wx.LC_REPORT|wx.LC_VRULES|wx.LC_HRULES)
 		self.machine_add = wx.Button(self.notebook_1_pane_1, wx.ID_ADD, "")
 		self.machine_edit = wx.Button(self.notebook_1_pane_1, wx.ID_EDIT, _("&Edit"))
-		self.machine_remove = wx.Button(self.notebook_1_pane_1, wx.ID_ANY, _("Remove"))
+		self.machine_remove = wx.Button(self.notebook_1_pane_1, wx.ID_REMOVE, _("Remove"))
 		self.panel_1 = wx.Panel(self.notebook_1, wx.ID_ANY)
 
 		self.__set_properties()

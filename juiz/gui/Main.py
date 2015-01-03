@@ -6,13 +6,15 @@ from ..ui.Main import Main as MainGen
 from .wizard.NewWizard import NewWizard
 from .wizard.NewMachineWizard import NewMachineWizard
 from .Deploy import Deploy
+from .EditMachine import EditMachine
 
 from wx.lib.agw import ultimatelistctrl as ulc
 
 class Main(MainGen):
 	ids = {
 		'deploy': 1001,
-		'bp_manage': 3001
+		'bp_manage': 3001,
+		'machine_list': 5000
 	}
 	project = None
 	close_on_new = False
@@ -35,13 +37,22 @@ class Main(MainGen):
 		self.Connect(wx.ID_NEW, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_new)
 		self.Connect(wx.ID_OPEN, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_open)
 		self.Connect(wx.ID_EXIT, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_exit)
+		self.Connect(wx.ID_SAVE, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_save)
+		self.Connect(wx.ID_REVERT_TO_SAVED, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_revert)
+		self.Connect(wx.ID_ANY, -1, wx.wxEVT_COMMAND_LIST_ITEM_ACTIVATED, self.menu_revert)
 		self.Connect(self.ids['deploy'], -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_deploy)
 		self.Bind(wx.EVT_BUTTON, self.add_machine, id=wx.ID_ADD)
+		self.Bind(wx.EVT_BUTTON, self.edit_machine, id=wx.ID_EDIT)
+		self.Bind(wx.EVT_BUTTON, self.remove_machine, id=wx.ID_REMOVE)
 		self.Bind(wx.EVT_CLOSE, self.on_close)
+		self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.edit_machine, id=self.ids['machine_list'])
 		
 		if self.project:
 			self.setup_project()
-			self.update_machine()
+			self.refresh()
+
+	def refresh(self):
+		self.update_machine()
 
 	def menu_new(self, event):
 		path = NewWizard(self).run()
@@ -70,6 +81,20 @@ class Main(MainGen):
 
 	def menu_deploy(self, event):
 		Deploy(self.project, self).Show()
+
+	def menu_save(self, event):
+		self.project.save_config(self.project.root)
+		self.changed = False
+
+	def menu_revert(self, event):
+		if self.changed:
+			if wx.MessageBox(_('Revert any unsaved change to the latest saved version?'), _('Revert to saved'), wx.ICON_QUESTION | wx.YES_NO) == wx.YES:
+				for section in self.project.config.sections():
+					self.project.config.remove_section(section)
+
+				self.project.load_config(self.project.root)
+				self.changed = False
+				self.refresh()
 
 	def on_close(self, event):
 		if event.CanVeto() and self.changed:
@@ -103,3 +128,38 @@ class Main(MainGen):
 		if NewMachineWizard(self.project, self).run():
 			self.update_machine()
 			self.changed = True
+
+	def edit_machine(self, event):
+		machine = self.get_selected_machine()
+		if not machine:
+			wx.MessageBox(_('No machine selected'), _('Edit machine'), wx.ICON_ASTERISK)
+			return
+
+		EditMachine(self, self.project, machine).Show()
+
+	def remove_machine(self, event):
+		machine = self.get_selected_machine_name()
+		if not machine:
+			wx.MessageBox(_('No machine selected'), _('Remove machine'), wx.ICON_ASTERISK)
+			return
+
+		if wx.MessageBox(_('Remove {0}?').format(machine), _('Remove machine'), wx.ICON_QUESTION | wx.YES_NO) == wx.NO:
+			return
+		self.project.config.remove_section('machine:{}'.format(machine))
+		self.update_machine()
+		self.changed = True
+
+	def get_selected_machine_name(self):
+		selected = self.machine_list.GetFirstSelected()
+
+		if selected == -1:
+			return
+
+		return self.machine_list.GetItemText(selected)
+
+	def get_selected_machine(self):
+		machine = self.get_selected_machine_name()
+		if not machine:
+			return
+
+		return [x for x in self.project.list_machines() if x.name == machine][0]

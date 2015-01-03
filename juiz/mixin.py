@@ -14,8 +14,11 @@ class ConfigMixin(object):
 	def __get(self, section, name, *args, **kwargs):
 		try:
 			return self._def_get(section, name, *args, **kwargs)
-		except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-			return config.get('project:{0}'.format(section), name, *args, **kwargs)
+		except (ConfigParser.NoSectionError, ConfigParser.NoOptionError), e:
+			try:
+				return config.get('project:{0}'.format(section), name, *args, **kwargs)
+			except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+				raise e
 
 	def __has_option(self, section, name, *args, **kwargs):
 		return self._def_has_option(section, name, *args, **kwargs) or config.has_option('project:{0}'.format(section), name, *args, **kwargs)
@@ -28,12 +31,12 @@ class ConfigMixin(object):
 		self._def_has_option = self.config.has_option
 		self.config.has_option = self.__has_option
 
-	def load_config(self,path=''):
+	def load_config(self, path=''):
 		path = os.path.join(path, config.get('main', 'project_folder'), 'config.cfg')
 		return self.config.read(path)
 
-	def save_config(self):
-		with open(os.path.join(config.get('main', 'project_folder'), 'config.cfg'), 'w') as fp:
+	def save_config(self, path=''):
+		with open(os.path.join(path, config.get('main', 'project_folder'), 'config.cfg'), 'w') as fp:
 			fcntl.lockf(fp, fcntl.LOCK_EX)
 			self.config.write(fp)
 			fcntl.lockf(fp, fcntl.LOCK_UN)

@@ -11,11 +11,12 @@
   - name: start mariadb
     service: name=mariadb enabled=yes state=started
   - name: secure root password
-    mysql_user: name=root password={{root_pw}} check_implicit_admin=yes login_password={{root_pw}} login_user=root
+    mysql_user: name=root password={{mysql_root|default(root_pw)}} check_implicit_admin=yes login_password={{root_pw}} login_user=root
+    ignore_errors: yes
   - name: create app database
-    mysql_db: name=app collation=utf8_general_ci encoding=utf8 login_password={{root_pw}} login_user=root
+    mysql_db: name=app collation=utf8_general_ci encoding=utf8 login_password={{mysql_root|default(root_pw)}} login_user=root
   - name: create app user
-    mysql_user: name=app host=% password={{app_pw}} priv=app.*:ALL login_password={{root_pw}} login_user=root
+    mysql_user: name=app host=% password={{mysql_app|default(app_pw)}} priv=app.*:ALL login_password={{mysql_root|default(root_pw)}} login_user=root
   handlers:
   - name: reload firewalld
     command: /usr/bin/firewall-cmd --reload
