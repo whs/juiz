@@ -1,14 +1,15 @@
 import os
 import wx
 
+from wx.lib.agw import ultimatelistctrl as ulc
+
 from ..project import *
 from ..ui.Main import Main as MainGen
 from .wizard.NewWizard import NewWizard
 from .wizard.NewMachineWizard import NewMachineWizard
 from .Deploy import Deploy
 from .EditMachine import EditMachine
-
-from wx.lib.agw import ultimatelistctrl as ulc
+from .BuildpackList import BuildpackList
 
 class Main(MainGen):
 	ids = {
@@ -37,6 +38,7 @@ class Main(MainGen):
 		self.Connect(wx.ID_NEW, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_new)
 		self.Connect(wx.ID_OPEN, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_open)
 		self.Connect(wx.ID_EXIT, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_exit)
+		self.Connect(self.ids['bp_manage'], -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_buildpack)
 		self.Connect(wx.ID_ABOUT, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_about)
 		
 		if self.project:
@@ -90,8 +92,11 @@ class Main(MainGen):
 
 		wx.AboutBox(info)
 
+	def menu_buildpack(self, event):
+		BuildpackList(self).ShowModal()
+
 	def menu_deploy(self, event):
-		Deploy(self.project, self).Show()
+		Deploy(self.project, self).ShowModal()
 
 	def menu_save(self, event):
 		self.project.save_config(self.project.root)
