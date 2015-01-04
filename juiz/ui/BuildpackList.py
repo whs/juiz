@@ -15,7 +15,7 @@ from wx.lib.agw.ultimatelistctrl import UltimateListCtrl
 class BuildpackList(wx.Dialog):
 	def __init__(self, *args, **kwds):
 		# begin wxGlade: BuildpackList.__init__
-		kwds["style"] = wx.DEFAULT_DIALOG_STYLE
+		kwds["style"] = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
 		wx.Dialog.__init__(self, *args, **kwds)
 		self.buildpack_list = UltimateListCtrl(self, 1000, agwStyle=wx.LC_REPORT|wx.LC_VRULES|wx.LC_HRULES)
 		self.btn_add = wx.Button(self, wx.ID_ADD, "")

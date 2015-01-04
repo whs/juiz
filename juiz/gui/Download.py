@@ -11,6 +11,7 @@ import wx
 
 from ..ui.LogWindow import LogWindow
 from .event import SimpleEvent
+from juiz import buildpack
 
 class Download(LogWindow):
 	def __init__(self, download, *args, **kwargs):
@@ -81,6 +82,7 @@ class Download(LogWindow):
 			self.SetEscapeId(wx.ID_NONE)
 
 	def close(self, evt):
+		buildpack.load_cfg()
 		self.Close()
 
 class DownloadThread(threading.Thread):
