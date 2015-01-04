@@ -1,6 +1,7 @@
 import wx
 import wx.wizard
 
+from juiz.gui.widget.AutoWrapStaticText import AutoWrapStaticText
 from .page.BaseWizardPage import BaseWizardPage
 from ..widget.RoleList import RoleList
 

@@ -2,6 +2,8 @@ from collections import OrderedDict
 
 import wx.wizard
 
+from juiz.gui.widget.AutoWrapStaticText import AutoWrapStaticText
+
 class BaseWizardPage(wx.wizard.PyWizardPage):
 	next = None
 	prev = None
@@ -37,7 +39,7 @@ class WizardInputListPage(BaseWizardPage):
 		outer_sizer = wx.BoxSizer(wx.VERTICAL)
 
 		if self.help_text:
-			help_text = wx.StaticText(self, -1, self.help_text)
+			help_text = AutoWrapStaticText(self, self.help_text)
 			help_text.Wrap(parent.GetPageSize().width)
 			outer_sizer.Add(help_text, 0, wx.EXPAND)
 			outer_sizer.AddSpacer(4)

@@ -4,6 +4,7 @@ import ConfigParser
 import wx
 import wx.wizard
 
+from juiz.gui.widget.AutoWrapStaticText import AutoWrapStaticText
 from .page import CloudWizard
 from .page.BaseWizardPage import BaseWizardPage
 from juiz.config import config
@@ -48,7 +49,7 @@ class NewWizardSelectCodePathPage(BaseWizardPage):
 	def __init__(self, parent):
 		super(NewWizardSelectCodePathPage, self).__init__(parent)
 		outer_sizer = wx.BoxSizer(wx.VERTICAL)
-		help_text = wx.StaticText(self, -1, _('Select the root of the codebase to be the project directory. This directory must be recognized by one of the installed buildpacks.'))
+		help_text = AutoWrapStaticText(self, _('Select the root of the codebase to be the project directory. This directory must be recognized by one of the installed buildpacks.'))
 		help_text.Wrap(parent.GetPageSize().width)
 		outer_sizer.Add(help_text, 0, wx.EXPAND)
 		outer_sizer.AddSpacer(10)

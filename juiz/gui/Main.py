@@ -37,6 +37,7 @@ class Main(MainGen):
 		self.Connect(wx.ID_NEW, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_new)
 		self.Connect(wx.ID_OPEN, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_open)
 		self.Connect(wx.ID_EXIT, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_exit)
+		self.Connect(wx.ID_ABOUT, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_about)
 		
 		if self.project:
 			self.Connect(wx.ID_SAVE, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_save)
@@ -78,6 +79,16 @@ class Main(MainGen):
 
 	def menu_exit(self, event):
 		self.Close(True)
+
+	def menu_about(self, event):
+		info = wx.AboutDialogInfo()
+		info.SetName('Juiz')
+		info.SetDescription(_('Desktop-Cloud Platform as a Service'))
+		info.SetCopyright(_('(C) 2014 Juiz developers'))
+		info.SetLicense(_('This application\'s development is sponsored by NECTEC'))
+		info.AddDeveloper('Manatsawin Hanmongkolchai')
+
+		wx.AboutBox(info)
 
 	def menu_deploy(self, event):
 		Deploy(self.project, self).Show()
