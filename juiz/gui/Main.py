@@ -37,17 +37,17 @@ class Main(MainGen):
 		self.Connect(wx.ID_NEW, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_new)
 		self.Connect(wx.ID_OPEN, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_open)
 		self.Connect(wx.ID_EXIT, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_exit)
-		self.Connect(wx.ID_SAVE, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_save)
-		self.Connect(wx.ID_REVERT_TO_SAVED, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_revert)
-		self.Connect(wx.ID_ANY, -1, wx.wxEVT_COMMAND_LIST_ITEM_ACTIVATED, self.menu_revert)
-		self.Connect(self.ids['deploy'], -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_deploy)
-		self.Bind(wx.EVT_BUTTON, self.add_machine, id=wx.ID_ADD)
-		self.Bind(wx.EVT_BUTTON, self.edit_machine, id=wx.ID_EDIT)
-		self.Bind(wx.EVT_BUTTON, self.remove_machine, id=wx.ID_REMOVE)
-		self.Bind(wx.EVT_CLOSE, self.on_close)
-		self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.edit_machine, id=self.ids['machine_list'])
 		
 		if self.project:
+			self.Connect(wx.ID_SAVE, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_save)
+			self.Connect(wx.ID_REVERT_TO_SAVED, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_revert)
+			self.Connect(self.ids['deploy'], -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_deploy)
+			self.Bind(wx.EVT_BUTTON, self.add_machine, id=wx.ID_ADD)
+			self.Bind(wx.EVT_BUTTON, self.edit_machine, id=wx.ID_EDIT)
+			self.Bind(wx.EVT_BUTTON, self.remove_machine, id=wx.ID_REMOVE)
+			self.Bind(wx.EVT_CLOSE, self.on_close)
+			self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.edit_machine, id=self.ids['machine_list'])
+
 			self.setup_project()
 			self.refresh()
 

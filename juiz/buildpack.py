@@ -4,8 +4,6 @@ import shutil
 import json
 import fcntl
 
-import requests
-
 from . import download as download_mod
 from . import config
 
@@ -14,6 +12,13 @@ BUILDPACK_CFG = os.path.join(config.get_root(), 'buildpack.json')
 
 _cfg = {
 	'buildpack': {}
+}
+
+INITIAL_BUILDPACK = {
+	'python': 'https://github.com/whs/heroku-buildpack-python.git',
+	'java': 'https://github.com/heroku/heroku-buildpack-java.git',
+	'nodejs': 'https://github.com/heroku/heroku-buildpack-nodejs.git',
+	'ruby': 'https://github.com/heroku/heroku-buildpack-ruby.git'
 }
 
 def load_cfg():

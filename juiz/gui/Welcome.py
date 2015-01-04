@@ -11,5 +11,7 @@ class Welcome(Main):
 		# remove the project menu
 		menubar = self.GetMenuBar()
 		menubar.EnableTop(menubar.FindMenu(_('&Project')), False)
+		menubar.Enable(wx.ID_SAVE, False)
+		menubar.Enable(wx.ID_REVERT_TO_SAVED, False)
 		self.frame_1_toolbar.EnableTool(wx.ID_PROPERTIES, False)
 		self.frame_1_toolbar.EnableTool(self.ids['deploy'], False)

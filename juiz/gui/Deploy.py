@@ -12,12 +12,13 @@ class Deploy(LogWindow):
 
 	def __init__(self, project, *args, **kwargs):
 		self.project = project
-		super(Deploy, self).__init__(style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER, *args, **kwargs)
+		super(Deploy, self).__init__(style=wx.SYSTEM_MENU | wx.RESIZE_BORDER, *args, **kwargs)
 		self.Center()
 
 		# disable closing
 		self.SetEscapeId(wx.ID_NONE)
 		self.Bind(wx.EVT_BUTTON, self.close, id=wx.ID_CLOSE)
+		self.Bind(wx.EVT_CLOSE, self.cleanup)
 		self.progressbar.SetRange(0)
 		self.progressbar.Pulse()
 
@@ -44,6 +45,9 @@ class Deploy(LogWindow):
 
 	def close(self, evt):
 		self.Close()
+
+	def cleanup(self, evt):
+		self.logger.removeHandler(self.handler)
 
 	def on_log(self, evt):
 		record = evt.value
