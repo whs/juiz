@@ -22,9 +22,7 @@ class EditMachine(Base):
 		self.env.InsertColumn(0, _('Key'))
 		self.env.InsertColumn(1, _('Value'))
 
-		for ind, (k, v) in enumerate(machine.env.iteritems()):
-			ind = self.env.InsertStringItem(ind, k)
-			self.env.SetStringItem(ind, 1, v)
+		self.update_env()
 
 		self.Bind(wx.EVT_BUTTON, self.on_save, id=wx.ID_SAVE)
 		self.Bind(wx.EVT_BUTTON, self.on_cancel, id=wx.ID_CANCEL)
@@ -89,9 +87,15 @@ class EditMachine(Base):
 		selected = self.env.GetFirstSelected()
 
 		if selected == -1:
+			wx.MessageDialog(self, _('Nothing is selected'), _('Remove environment variable'), wx.ICON_ASTERISK).ShowWindowModal()
 			return
 
 		self.env.DeleteItem(selected)
+
+	def update_env(self):
+		for ind, (k, v) in enumerate(self.machine.env.iteritems()):
+			ind = self.env.InsertStringItem(ind, k)
+			self.env.SetStringItem(ind, 1, v)
 
 	def load_roles(self):
 		for role in self.machine.roles:

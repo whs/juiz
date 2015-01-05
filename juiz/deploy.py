@@ -71,7 +71,7 @@ class Deployable(object):
 	def build_host(self, node):
 		machine = Host(node['name'])
 
-		env = {}
+		env = self.get_env()
 		for key, value in self.config.items('machine:{}'.format(node['name'])):
 			if key.startswith('env_'):
 				env[key.replace('env_', '', 1)] = value

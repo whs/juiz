@@ -6,7 +6,7 @@ import re
 from .config import config
 from .machine import Machine
 
-__all__ = ['ConfigMixin', 'MachineMixin']
+__all__ = ['ConfigMixin', 'MachineMixin', 'EnvironmentMixin']
 
 class ConfigMixin(object):
 	config = ConfigParser.ConfigParser()
@@ -54,3 +54,7 @@ class MachineMixin(object):
 
 	def get_machine(self, name):
 		return Machine.from_config(name, self.config)
+
+class EnvironmentMixin(object):
+	def get_env(self):
+		return dict(self.config.items('env'))

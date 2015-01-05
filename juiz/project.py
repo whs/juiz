@@ -6,7 +6,7 @@ from .config import config
 
 __all__ = ['Project', 'NoProjectException']
 
-class Project(ConfigMixin, MachineMixin, Deployable):
+class Project(ConfigMixin, MachineMixin, Deployable, EnvironmentMixin):
 	root = None
 	id = None
 
