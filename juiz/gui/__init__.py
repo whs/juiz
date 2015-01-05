@@ -8,6 +8,13 @@ from .. import buildpack
 
 app = None
 
+# emulation layer for ShowWindowModal if wxWidget is too old
+if not getattr(wx.Dialog, 'ShowWindowModal', None):
+	def ShowWindowModal(self):
+		return self.ShowModal()
+
+	wx.Dialog.ShowWindowModal = ShowWindowModal
+
 def bootstrap():
 	global app
 	gettext.install("juiz")

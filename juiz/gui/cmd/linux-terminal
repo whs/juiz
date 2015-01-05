@@ -1,10 +1,12 @@
 #!/bin/bash
 set -e
 
+cd `dirname $0`
+
 ID=$RANDOM
 echo '#!/bin/bash' > /tmp/terminal$ID.command
 echo $* >> /tmp/terminal$ID.command
 chmod +x /tmp/terminal$ID.command
-open /tmp/terminal$ID.command
-sleep 30
+./xdg-terminal /tmp/terminal$ID.command
+sleep 1
 rm /tmp/terminal$ID.command

@@ -334,7 +334,7 @@ terminal_kde()
         if [ x"$1" == x"" ]; then
             $terminal_exec
         else
-            $terminal_exec -e "$1"
+            $terminal_exec -e $1
         fi
 
         if [ $? -eq 0 ]; then
@@ -362,9 +362,9 @@ terminal_gnome()
             $terminal_exec
         else
             if [ x"$term_exec_arg" == x"" ]; then
-                $terminal_exec "$1"
+                $terminal_exec $1
             else
-                $terminal_exec "$term_exec_arg" "$1"
+                $terminal_exec "$term_exec_arg" $1
             fi
         fi
 
@@ -383,7 +383,7 @@ terminal_xfce()
     if [ x"$1" == x"" ]; then
         exo-open --launch TerminalEmulator
     else
-        exo-open --launch TerminalEmulator "$1"
+        exo-open --launch TerminalEmulator $1
     fi
 
     if [ $? -eq 0 ]; then
@@ -419,10 +419,10 @@ terminal_lxde()
         if [ x"$1" == x"" ]; then
             lxterminal
         else
-            lxterminal -e "$1"
+            lxterminal -e $1
         fi
     else
-        terminal_generic "$1"
+        terminal_generic $1
     fi
 }
 

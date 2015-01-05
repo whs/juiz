@@ -9,22 +9,17 @@ import wx
 
 # begin wxGlade: extracode
 from juiz.gui.widget.EditableListBox import EditableListBox
-from juiz.gui.widget.RoleList import RoleList
 # end wxGlade
 
 
-class EditMachine(wx.Dialog):
+class ProjectConfig(wx.Dialog):
 	def __init__(self, *args, **kwds):
-		# begin wxGlade: EditMachine.__init__
+		# begin wxGlade: ProjectConfig.__init__
 		kwds["style"] = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.THICK_FRAME
 		wx.Dialog.__init__(self, *args, **kwds)
 		self.panel = wx.ScrolledWindow(self, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
-		self.label_1 = wx.StaticText(self.panel, wx.ID_ANY, _("Name"))
-		self.name = wx.TextCtrl(self.panel, wx.ID_ANY, "")
-		self.label_3 = wx.StaticText(self.panel, wx.ID_ANY, _("Name change after deployment is not supported"))
-		self.label_2 = wx.StaticText(self.panel, wx.ID_ANY, _("Roles"))
-		self.roles = RoleList(self.panel, 2000, choices=[], style=wx.LB_MULTIPLE | wx.LB_ALWAYS_SB)
-		self.label_4 = wx.StaticText(self.panel, wx.ID_ANY, _("Environment variables"))
+		self.cloudwizard = wx.Button(self.panel, 1000, _("Cloud configuration wizard"))
+		self.label_4 = wx.StaticText(self.panel, wx.ID_ANY, _("Global environment variables"))
 		self.button_1 = wx.Button(self.panel, wx.ID_ADD, "", style=wx.BU_EXACTFIT)
 		self.button_2 = wx.Button(self.panel, wx.ID_REMOVE, "", style=wx.BU_EXACTFIT)
 		self.env = EditableListBox(self.panel, wx.ID_ANY, style=wx.LC_REPORT | wx.SUNKEN_BORDER)
@@ -36,31 +31,21 @@ class EditMachine(wx.Dialog):
 		# end wxGlade
 
 	def __set_properties(self):
-		# begin wxGlade: EditMachine.__set_properties
-		self.SetTitle(_("dialog_2"))
-		self.SetSize((400, 500))
-		self.name.SetMinSize((0, 28))
-		self.name.SetFocus()
-		self.label_3.SetFont(wx.Font(8, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
-		self.roles.SetMinSize((0, 120))
-		self.env.SetMinSize((0, 120))
+		# begin wxGlade: ProjectConfig.__set_properties
+		self.SetTitle(_("Project configuration"))
+		self.SetSize((400, 300))
+		self.env.SetMinSize((0, 150))
 		self.panel.SetScrollRate(10, 10)
 		self.save.SetDefault()
 		# end wxGlade
 
 	def __do_layout(self):
-		# begin wxGlade: EditMachine.__do_layout
+		# begin wxGlade: ProjectConfig.__do_layout
 		sizer_7 = wx.BoxSizer(wx.VERTICAL)
 		sizer_8 = wx.BoxSizer(wx.HORIZONTAL)
 		sizer_9 = wx.BoxSizer(wx.VERTICAL)
 		sizer_11 = wx.BoxSizer(wx.HORIZONTAL)
-		sizer_10 = wx.BoxSizer(wx.HORIZONTAL)
-		sizer_10.Add(self.label_1, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.ADJUST_MINSIZE, 10)
-		sizer_10.Add(self.name, 1, wx.EXPAND | wx.ADJUST_MINSIZE, 0)
-		sizer_9.Add(sizer_10, 0, wx.EXPAND, 0)
-		sizer_9.Add(self.label_3, 0, wx.TOP | wx.BOTTOM | wx.ADJUST_MINSIZE, 2)
-		sizer_9.Add(self.label_2, 0, wx.TOP | wx.BOTTOM | wx.ADJUST_MINSIZE, 5)
-		sizer_9.Add(self.roles, 0, wx.EXPAND | wx.ADJUST_MINSIZE, 0)
+		sizer_9.Add(self.cloudwizard, 0, wx.BOTTOM | wx.EXPAND | wx.ADJUST_MINSIZE, 10)
 		sizer_11.Add(self.label_4, 1, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 0)
 		sizer_11.Add(self.button_1, 0, wx.ADJUST_MINSIZE, 0)
 		sizer_11.Add(self.button_2, 0, wx.ADJUST_MINSIZE, 0)
@@ -76,4 +61,4 @@ class EditMachine(wx.Dialog):
 		self.Centre()
 		# end wxGlade
 
-# end of class EditMachine
+# end of class ProjectConfig
