@@ -1,5 +1,6 @@
 import os
 import wx
+import pipes
 
 from wx.lib.agw import ultimatelistctrl as ulc
 
@@ -10,12 +11,15 @@ from .wizard.NewMachineWizard import NewMachineWizard
 from .Deploy import Deploy
 from .EditMachine import EditMachine
 from .BuildpackList import BuildpackList
+from .GetIPDialog import GetIPDialog
+from . import util as gui_util
 
 class Main(MainGen):
 	ids = {
 		'deploy': 1001,
 		'bp_manage': 3001,
-		'machine_list': 5000
+		'machine_list': 5000,
+		'run_cmd': 4000
 	}
 	project = None
 	close_on_new = False
@@ -40,6 +44,7 @@ class Main(MainGen):
 		self.Connect(wx.ID_EXIT, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_exit)
 		self.Connect(self.ids['bp_manage'], -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_buildpack)
 		self.Connect(wx.ID_ABOUT, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_about)
+		self.Connect(self.ids['run_cmd'], -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.run_cmd)
 		
 		if self.project:
 			self.Connect(wx.ID_SAVE, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_save)
@@ -50,6 +55,7 @@ class Main(MainGen):
 			self.Bind(wx.EVT_BUTTON, self.remove_machine, id=wx.ID_REMOVE)
 			self.Bind(wx.EVT_CLOSE, self.on_close)
 			self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.edit_machine, id=self.ids['machine_list'])
+			self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.menu_machine, id=self.ids['machine_list'])
 
 			self.setup_project()
 			self.refresh()
@@ -96,7 +102,7 @@ class Main(MainGen):
 		BuildpackList(self).ShowModal()
 
 	def menu_deploy(self, event):
-		Deploy(self.project, self).ShowModal()
+		Deploy(self.project, self).ShowWindowModal()
 
 	def menu_save(self, event):
 		self.project.save_config(self.project.root)
@@ -104,13 +110,26 @@ class Main(MainGen):
 
 	def menu_revert(self, event):
 		if self.changed:
-			if wx.MessageBox(_('Revert any unsaved change to the latest saved version?'), _('Revert to saved'), wx.ICON_QUESTION | wx.YES_NO) == wx.YES:
+			if wx.MessageDialog(self, _('Revert any unsaved change to the latest saved version?'), _('Revert to saved'), wx.ICON_QUESTION | wx.YES_NO) == wx.YES:
 				for section in self.project.config.sections():
 					self.project.config.remove_section(section)
 
 				self.project.load_config(self.project.root)
 				self.changed = False
 				self.refresh()
+
+	def menu_machine(self, event):
+		height = self.machine_list.GetItemRect(event.GetItem().GetId()).height
+		header_height = self.machine_list.GetHeaderHeight().height
+		point = event.GetPoint()
+		point.y += height + header_height
+
+		self._last_context = event.GetItem()
+
+		menu = wx.Menu(event.GetItem().GetText())
+		menu.Append(self.ids['run_cmd'], _('&Run command'))
+		self.PopupMenu(menu, point)
+		menu.Destroy()
 
 	def on_close(self, event):
 		if event.CanVeto() and self.changed:
@@ -148,7 +167,7 @@ class Main(MainGen):
 	def edit_machine(self, event):
 		machine = self.get_selected_machine()
 		if not machine:
-			wx.MessageBox(_('No machine selected'), _('Edit machine'), wx.ICON_ASTERISK)
+			wx.MessageDialog(self, _('No machine selected'), _('Edit machine'), wx.ICON_ASTERISK).ShowWindowModal()
 			return
 
 		EditMachine(self, self.project, machine).Show()
@@ -156,7 +175,7 @@ class Main(MainGen):
 	def remove_machine(self, event):
 		machine = self.get_selected_machine_name()
 		if not machine:
-			wx.MessageBox(_('No machine selected'), _('Remove machine'), wx.ICON_ASTERISK)
+			wx.MessageDialog(self, _('No machine selected'), _('Remove machine'), wx.ICON_ASTERISK).ShowWindowModal()
 			return
 
 		if wx.MessageBox(_('Remove {0}?').format(machine), _('Remove machine'), wx.ICON_QUESTION | wx.YES_NO) == wx.NO:
@@ -179,3 +198,23 @@ class Main(MainGen):
 			return
 
 		return [x for x in self.project.list_machines() if x.name == machine][0]
+
+	def run_cmd(self, evt):
+		if not self._last_context:
+			return
+
+		machine = self.project.get_machine(self._last_context.GetText())
+		ip_dialog = GetIPDialog(self.project, machine)
+		if ip_dialog.ShowModal() == 0:
+			wx.MessageDialog(self, _('IP of {} cannot be determined').format(machine.name), _('Cannot get IP'), wx.OK | wx.CENTER | wx.ICON_EXCLAMATION).ShowWindowModal()
+			return
+
+		dialog = wx.TextEntryDialog(self, _('Enter command. Web application is deployed at /app.'), _('Run command on {ip}'.format(ip=ip_dialog.ip)), 'bash')
+
+		if dialog.ShowModal() == wx.ID_OK:
+			cmd = 'ssh -i "{key}" -t "root@{ip}" "/var/juiz/remote/remote-login \'{cmd}\'"'.format(
+				ip = ip_dialog.ip,
+				key = os.path.expanduser(self.project.config.get('main', 'ssh_key')),
+				cmd = pipes.quote(dialog.GetValue())
+			)
+			gui_util.run_terminal(cmd)

@@ -1,0 +1,9 @@
+#!/bin/bash
+set -e
+
+ID=$RANDOM
+echo $* > /tmp/terminal$ID.command
+chmod +x /tmp/terminal$ID.command
+open /tmp/terminal$ID.command
+sleep 30
+rm /tmp/terminal$ID.command

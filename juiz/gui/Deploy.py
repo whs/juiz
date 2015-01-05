@@ -45,6 +45,7 @@ class Deploy(LogWindow):
 
 	def close(self, evt):
 		self.Close()
+		self.EndModal(True)
 
 	def cleanup(self, evt):
 		self.logger.removeHandler(self.handler)

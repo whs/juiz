@@ -36,13 +36,16 @@ class DeployThread(threading.Thread):
 		self.project.deploy()
 
 class Deployable(object):
+	def get_driver(self):
+		return get_driver(self.config.get('main', 'target'))(self)
+
 	def deploy(self):
 		self.__log = logging.getLogger('deploy')
 
 		self.__log.log(LOG_PROGRESS_TOTAL, 1)
 		self.buildpack_detect()
 		
-		nodes = get_driver(self.config.get('main', 'target'))(self).deploy()
+		nodes = self.get_driver().deploy()
 		self.inventory = self.build_inventory(nodes)
 
 		open(os.path.join(self.root, '.rsync-filter'), 'w') \

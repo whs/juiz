@@ -1,0 +1,10 @@
+#!/bin/bash
+
+getent passwd app > /dev/null 2>&1
+
+if [ $? -eq 0 ]; then
+	cd ~app
+	exec sudo -u app -H /var/juiz/remote/run-app "$*"
+else
+	exec $*
+fi

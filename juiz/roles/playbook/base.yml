@@ -12,6 +12,7 @@
     with_items:
       - rsync
       - firewalld
+      - sudo
   - name: enabling firewalld
     service: name=firewalld.service enabled=yes state=started
   - name: copy juiz runtime
@@ -19,5 +20,5 @@
   - name: create environment directory
     file: path={{env_dir}} state=directory
   - name: dump host environment
-    copy: dest={{env_dir}}/{{item.key}} content={{item.value}} owner=app
+    copy: dest={{env_dir}}/{{item.key}} content={{item.value}}
     with_dict: host_env

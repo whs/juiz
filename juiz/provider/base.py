@@ -50,6 +50,14 @@ class BaseProvider(object):
 				out[opt] = self.config.getboolean(self.get_driver_key(), opt)
 		return out
 
+	def get_ip(self, name):
+		nodes = self.driver.list_nodes()
+		formatted_name = 'juiz-{0}-{1}'.format(self.project.id, name)
+		try:
+			return [x for x in nodes if x.name == formatted_name][0].public_ips[0]
+		except IndexError:
+			return None
+
 	def create_machines(self):
 		machines = {}
 		nodes = self.driver.list_nodes()

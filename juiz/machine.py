@@ -9,6 +9,10 @@ class Machine(object):
 		self.roles = []
 		self.env = {}
 
+	def get_ip(self, project):
+		driver = project.get_driver()
+		return driver.get_ip(self.name)
+
 	@classmethod
 	def from_config(cls, name, config):
 		machine = cls(name)

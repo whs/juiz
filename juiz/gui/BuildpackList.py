@@ -36,7 +36,7 @@ class BuildpackList(BPL):
 		result = BuildpackAddWizard(self).run()
 		if result:
 			if result[0] in buildpack.list():
-				wx.MessageDialog(self, _('{0} is already exists').format(result[0]), _('Buildpack already exists'), wx.OK | wx.CENTER | wx.ICON_INFORMATION).ShowModal()
+				wx.MessageDialog(self, _('{0} is already exists').format(result[0]), _('Buildpack already exists'), wx.OK | wx.CENTER | wx.ICON_INFORMATION).ShowWindowModal()
 				return
 
 			dl = Download([result], self)
@@ -50,6 +50,7 @@ class BuildpackList(BPL):
 		index = self.buildpack_list.GetFirstSelected()
 
 		if index == -1:
+			wx.MessageDialog(self, _('No buildpack is selected'), _('Empty selection'), wx.OK | wx.CENTER | wx.ICON_EXCLAMATION).ShowWindowModal()
 			return
 
 		name = self.buildpack_list.GetItem(index).GetText()
