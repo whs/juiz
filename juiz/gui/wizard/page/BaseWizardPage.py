@@ -1,3 +1,4 @@
+import ConfigParser
 from collections import OrderedDict
 
 import wx.wizard
@@ -25,11 +26,16 @@ class BaseWizardPage(wx.wizard.PyWizardPage):
 		else:
 			forward_btn.Disable()
 
+	def get_project(self):
+		parent = self.GetParent()
+		return getattr(parent, 'project', None)
+
 class WizardInputListPage(BaseWizardPage):
 	fields = []
 	help_text = ''
 	hyperlink = {}
 	nullable_field = []
+	config_section = ''
 
 	def __init__(self, parent):
 		super(WizardInputListPage, self).__init__(parent)
@@ -88,8 +94,11 @@ class WizardInputListPage(BaseWizardPage):
 			choice = wx.Choice(self, wx.NewId(), choices=[x[1] for x in self._cache[name_code]])
 			default = self.get_default_value(name)
 			if default:
-				index = next(index for (index, d) in enumerate(self._cache[name_code]) if d[0] == default)
-				choice.SetSelection(index)
+				try:
+					index = next(index for (index, d) in enumerate(self._cache[name_code]) if d[0] == default)
+					choice.SetSelection(index)
+				except StopIteration:
+					pass
 			return choice
 		elif result == 'file':
 			return wx.FilePickerCtrl(self, wx.NewId(), path=self.get_default_value(name))
@@ -97,13 +106,19 @@ class WizardInputListPage(BaseWizardPage):
 			return wx.TextCtrl(self, wx.NewId(), value=self.get_default_value(name))
 	
 	def get_default_value(self, name):
-		name_code = name.lower().replace(' ', '_')
+		name_code = self.format_field_name(name)
+
+		try:
+			return self.get_project().config.get(self.config_section, name_code)
+		except (AttributeError, ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+			pass
+
 		if hasattr(self, 'get_{0}'.format(name_code)):
 			return getattr(self, 'get_{0}'.format(name_code))()
 		return ''
 
 	def get_input_type(self, name):
-		name_code = name.lower().replace(' ', '_')
+		name_code = self.format_field_name(name)
 		attr = 'get_{0}_type'.format(name_code)
 		result = 'text'
 		if hasattr(self, attr):
@@ -153,3 +168,12 @@ class WizardInputListPage(BaseWizardPage):
 
 	def get_settings(self):
 		return self.get_values_dict()
+
+	def dump_config(self, config):
+		try:
+			config.add_section(self.config_section)
+		except ConfigParser.DuplicateSectionError:
+			pass
+		
+		for k, v in self.get_settings().iteritems():
+			config.set(self.config_section, k, v)

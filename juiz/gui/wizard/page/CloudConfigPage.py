@@ -37,12 +37,14 @@ class CloudConfigPage(WizardInputListPage):
 	def on_loaded(self, event):
 		if self.progress:
 			self.progress.EndModal(1)
+			self.progress.Destroy()
 
 		self.update_lists()
 
 	def on_location_loaded(self, event):
 		if self.progress:
 			self.progress.EndModal(1)
+			self.progress.Destroy()
 
 		self.update_size()
 		self.update_image()
@@ -51,6 +53,7 @@ class CloudConfigPage(WizardInputListPage):
 	def on_error(self, event):
 		if self.progress:
 			self.progress.EndModal(0)
+			self.progress.Destroy()
 
 		wx.MessageDialog(self.GetParent(), 'Unable to fetch metadata:\n' + str(event.value), 'Error', wx.OK | wx.ICON_ERROR).ShowModal()
 		self.GetParent().ShowPage(self.GetPrev(), False)
@@ -62,6 +65,9 @@ class CloudConfigPage(WizardInputListPage):
 		self.progress.ShowModal()
 
 	def fetch(self):
+		location = None
+		default_loc_id = self.get_default_value('Location')
+
 		try:
 			Driver = get_driver(self.provider)
 			self.driver = Driver(**self.get_settings())
@@ -70,13 +76,25 @@ class CloudConfigPage(WizardInputListPage):
 				wx.PostEvent(self, ProgressEvent([1, 'Fetching location list']))
 				self.locations = self.driver.list_locations()
 
+			if default_loc_id:
+				try:
+					location = [x for x in self.locations if x.id == default_loc_id][0]
+				except IndexError:
+					pass
+
 			if 'Image' in self.fields:
 				wx.PostEvent(self, ProgressEvent([2, 'Fetching images list']))
-				self.images = self.driver.list_images()
+				try:
+					self.images = self.driver.list_images(location)
+				except TypeError:
+					self.images = self.driver.list_images()
 
 			if 'Size' in self.fields:
 				wx.PostEvent(self, ProgressEvent([3, 'Fetching machine sizes']))
-				self.sizes = self.driver.list_sizes()
+				try:
+					self.sizes = self.driver.list_sizes(location)
+				except TypeError:
+					self.sizes = self.driver.list_sizes()
 
 			self.fetch_post()
 			wx.PostEvent(self, MetadataLoadedEvent())
@@ -124,8 +142,11 @@ class CloudConfigPage(WizardInputListPage):
 
 		widget.Clear()
 
+		default = self.get_default_value('Location')
 		for item in self.locations:
-			widget.Append(item.name, item.id)
+			index = widget.Append(item.name, item.id)
+			if default == item.id:
+				widget.SetSelection(index)
 
 	def update_size(self):
 		widget = self.get_widget('Size')
@@ -134,8 +155,11 @@ class CloudConfigPage(WizardInputListPage):
 
 		widget.Clear()
 
+		default = self.get_default_value('Location')
 		for item in self.sizes:
-			widget.Append('{0} ({1} MB RAM, {2} GB Disk, ${3:.2f}/hr)'.format(item.name, item.ram, item.disk, item.price), item.id)
+			index = widget.Append('{0} ({1} MB RAM, {2} GB Disk, ${3:.2f}/hr)'.format(item.name, item.ram, item.disk, item.price), item.id)
+			if default == item.id:
+				widget.SetSelection(index)
 
 	def update_image(self):
 		widget = self.get_widget('Image')
@@ -144,19 +168,11 @@ class CloudConfigPage(WizardInputListPage):
 
 		widget.Clear()
 
+		default = self.get_default_value('Image')
 		for item in self.images:
-			widget.Append(item.name, item.id)
-
-	def update_project(self):
-		widget = self.get_widget('Project')
-		if not widget:
-			return
-
-		widget.Clear()
-		widget.Append('', None)
-
-		for item in self.projects:
-			widget.Append(item.display_text, item.id)
+			index = widget.Append(item.name, item.id)
+			if default == item.id:
+				widget.SetSelection(index)
 
 	def get_location_type(self):
 		return 'choice'
@@ -181,7 +197,7 @@ class CloudConfigPage(WizardInputListPage):
 
 	def dump_config(self, config):
 		for k, v in self.get_values_dict().iteritems():
-			config.set('target:{0}'.format(self.provider), k, v)
+			config.set(self.config_section, k, v)
 
 	def get_widget_value(self, field, widget):
 		if isinstance(widget, wx.Choice):

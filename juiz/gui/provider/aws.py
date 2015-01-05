@@ -9,31 +9,27 @@ class AWSCloudConfigWizardPage(WizardInputListPage):
 	hyperlink = {
 		'Access IAM': 'https://console.aws.amazon.com/iam/home#users'
 	}
+	config_section = 'target:{0}'.format(Provider.EC2)
 
 	def __init__(self, *args, **kwargs):
 		super(AWSCloudConfigWizardPage, self).__init__(*args, **kwargs)
 		self.set_next(AWSCloudConfigPage(*args, **kwargs))
 
-	def dump_config(self, config):
-		section = 'target:{0}'.format(Provider.EC2)
-		config.add_section(section)
-		
-		for k, v in self.get_settings().iteritems():
-			if k == 'endpoint' and v == 'auto':
-				continue
-			config.set(section, k, v)
+	def get_widget_value(self, field, widget):
+		value = super(AWSCloudConfigWizardPage, self).get_widget_value(field, widget)
+		if field == 'endpoint' and value == 'auto':
+			return None
+		return value
 
-	def get_settings(self):
-		data = self.get_values_dict()
-		if data['endpoint'] == 'auto':
-			data['endpoint'] = None
+	def format_field_name(self, name):
+		if name == 'Access Key':
+			return 'key'
+		elif name == 'Access Secret':
+			return 'secret'
+		elif name == 'Endpoint':
+			return 'host'
 
-		return {
-			'key': data['access_key'],
-			'secret': data['access_secret'],
-			'host': data['endpoint'],
-			'region': data['region']
-		}
+		return super(AWSCloudConfigWizardPage, self).format_field_name(name)
 
 	def get_region_choices(self):
 		# libcloud does not provide api to list regions
@@ -54,10 +50,11 @@ class AWSCloudConfigWizardPage(WizardInputListPage):
 	def get_region(self):
 		return 'us-east-1'
 
-	def get_endpoint(self):
+	def get_host(self):
 		return 'auto'
 
 class AWSCloudConfigPage(CloudConfigPage):
 	fields = ['Size']
 	provider = Provider.EC2
 	help_text = 'T2 instance (micro, small and burstable) are not supported'
+	config_section = 'target:{0}'.format(Provider.EC2)

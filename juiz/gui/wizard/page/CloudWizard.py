@@ -46,7 +46,6 @@ class CloudPickProviderWizardPage(BaseWizardPage):
 			outer_sizer.AddSpacer(2)
 		
 		self.SetSizer(outer_sizer)
-		self.pick_radio(self.providers.values()[0])
 
 		parent.Bind(wx.wizard.EVT_WIZARD_PAGE_CHANGED, self.on_show)
 		self.Bind(wx.EVT_RADIOBUTTON, self.radio_change)
@@ -60,9 +59,16 @@ class CloudPickProviderWizardPage(BaseWizardPage):
 
 	def create_radio(self, name, id=wx.ID_ANY):
 		radio = wx.RadioButton(self, id, name)
-		if self.__is_first:
+		project = self.get_project()
+		data = self.get_data_by_id(id)
+		if project:
+			if project.config.get('main', 'target') == data['provider']:
+				radio.SetValue(True)
+				self.pick_radio(data)
+		elif self.__is_first:
 			self.__is_first = False
 			radio.SetValue(True)
+			self.pick_radio(data)
 		self.radio.append(radio)
 
 	def radio_change(self, event):

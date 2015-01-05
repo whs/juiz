@@ -12,6 +12,7 @@ from .Deploy import Deploy
 from .EditMachine import EditMachine
 from .BuildpackList import BuildpackList
 from .GetIPDialog import GetIPDialog
+from .ProjectConfig import ProjectConfig
 from . import util as gui_util
 
 class Main(MainGen):
@@ -50,6 +51,7 @@ class Main(MainGen):
 			self.Connect(wx.ID_SAVE, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_save)
 			self.Connect(wx.ID_REVERT_TO_SAVED, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_revert)
 			self.Connect(self.ids['deploy'], -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_deploy)
+			self.Connect(wx.ID_PROPERTIES, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_project_config)
 			self.Bind(wx.EVT_BUTTON, self.add_machine, id=wx.ID_ADD)
 			self.Bind(wx.EVT_BUTTON, self.edit_machine, id=wx.ID_EDIT)
 			self.Bind(wx.EVT_BUTTON, self.remove_machine, id=wx.ID_REMOVE)
@@ -120,7 +122,11 @@ class Main(MainGen):
 
 	def menu_machine(self, event):
 		height = self.machine_list.GetItemRect(event.GetItem().GetId()).height
-		header_height = self.machine_list.GetHeaderHeight().height
+		try:
+			header_height = self.machine_list.GetHeaderHeight().height
+		except AttributeError:
+			# older version does not have GetHeaderHeight
+			header_height = 20
 		point = event.GetPoint()
 		point.y += height + header_height
 
@@ -130,6 +136,9 @@ class Main(MainGen):
 		menu.Append(self.ids['run_cmd'], _('&Run command'))
 		self.PopupMenu(menu, point)
 		menu.Destroy()
+
+	def menu_project_config(self, event):
+		ProjectConfig(self.project, self).ShowWindowModal()
 
 	def on_close(self, event):
 		if event.CanVeto() and self.changed:
@@ -205,7 +214,7 @@ class Main(MainGen):
 
 		machine = self.project.get_machine(self._last_context.GetText())
 		ip_dialog = GetIPDialog(self.project, machine)
-		if ip_dialog.ShowModal() == 0:
+		if ip_dialog.ShowModal() == 0 or ip_dialog.ip == None:
 			wx.MessageDialog(self, _('IP of {} cannot be determined').format(machine.name), _('Cannot get IP'), wx.OK | wx.CENTER | wx.ICON_EXCLAMATION).ShowWindowModal()
 			return
 

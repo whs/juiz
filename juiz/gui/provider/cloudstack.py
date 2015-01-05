@@ -7,11 +7,10 @@ from juiz.gui.wizard.page.BaseWizardPage import WizardInputListPage
 from juiz.gui.wizard.page.CloudConfigPage import CloudConfigPage, ProgressEvent, FetchErrorEvent
 from ..event import SimpleEvent
 
-CONFIG_SECTION = 'target:{0}'.format(Provider.CLOUDSTACK)
-
 class CloudStackCloudConfigWizardPage(WizardInputListPage):
 	fields = ['API Key', 'API Secret', 'URL']
 	help_text = 'To access your API keys, go to Accounts>Your username>View users>Your username. You might need to generate keys if one doesn\'t already exists'
+	config_section = 'target:{0}'.format(Provider.CLOUDSTACK)
 
 	def __init__(self, *args, **kwargs):
 		super(CloudStackCloudConfigWizardPage, self).__init__(*args, **kwargs)
@@ -27,12 +26,6 @@ class CloudStackCloudConfigWizardPage(WizardInputListPage):
 	def get_url(self):
 		return 'http://localhost/client/api'
 
-	def dump_config(self, config):
-		config.add_section(CONFIG_SECTION)
-
-		for k, v in self.get_settings().iteritems():
-			config.set(CONFIG_SECTION, k, v)
-
 	def get_settings(self):
 		settings = self.get_values_dict()
 		settings['secure'] = False
@@ -44,6 +37,7 @@ class CloudStackZoneConfigWizardPage(CloudConfigPage):
 	help_text = 'Juiz requires CentOS 7. Please select CentOS 7 image from the server.'
 	progress_count = 6
 	provider = Provider.CLOUDSTACK
+	config_section = 'target:{0}'.format(Provider.CLOUDSTACK)
 
 	def __init__(self, *args, **kwargs):
 		super(CloudStackZoneConfigWizardPage, self).__init__(*args, **kwargs)
@@ -53,6 +47,7 @@ class CloudStackZoneConfigWizardPage(CloudConfigPage):
 	def on_network_loaded(self, event):
 		if self.progress:
 			self.progress.EndModal(1)
+			self.progress.Destroy()
 
 		self.update_network()
 		self.check_allow_forward()
@@ -98,11 +93,17 @@ class CloudStackZoneConfigWizardPage(CloudConfigPage):
 
 	def update_project(self):
 		widget = self.get_widget('Project')
+		if not widget:
+			return
+
 		widget.Clear()
 		widget.Append('', None)
 
+		default = self.get_default_value('Project')
 		for item in self.projects:
-			widget.Append(item.display_text, item.id)
+			index = widget.Append(item.display_text, item.id)
+			if default == item.id:
+				widget.SetSelection(index)
 
 	def update_network(self):
 		widget = self.get_widget('Network')
