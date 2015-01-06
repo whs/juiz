@@ -46,6 +46,7 @@ class LogViewer(LV):
 		self.Bind(wx.EVT_SHOW, self.on_show)
 
 		self.logname.Append(_('Name'))
+		self.logname.SetSelection(0)
 		self.loglevel.Append(_('Log level'))
 		# not a class variable for gettext usage
 		self.loglevel.Append(_('Emergency'), 0)
@@ -56,6 +57,7 @@ class LogViewer(LV):
 		self.loglevel.Append(_('Notice'), 5)
 		self.loglevel.Append(_('Info'), 6)
 		self.loglevel.Append(_('Debug'), 7)
+		self.loglevel.SetSelection(0)
 
 		self.SetTitle(_('{0} - Log viewer').format(self.machine.name))
 		self.statusbar.SetFields([_('Connecting...')])
@@ -118,6 +120,8 @@ class LogViewer(LV):
 		self.connection = subprocess.Popen([
 			'/usr/bin/ssh',
 			'-C',
+			'-o',
+			'StrictHostKeyChecking=no',
 			'-i',
 			os.path.expanduser(self.project.config.get('main', 'ssh_key')),
 			'root@{}'.format(self.ip),
@@ -139,8 +143,9 @@ class LogViewer(LV):
 
 		for stream in streams:
 			if stream.fileobj == self.connection.stderr:
-				wx.MessageBox(self.connection.stderr.read(), _('Error'), wx.OK | wx.CENTER | wx.ICON_EXCLAMATION)
+				parent = self.GetParent()
 				self.close()
+				wx.MessageDialog(parent, self.connection.stderr.read(), _('Error'), wx.OK | wx.CENTER | wx.ICON_EXCLAMATION).ShowWindowModal()
 				return
 			elif stream.fileobj == self.connection.stdout:
 				if not self.connected:
