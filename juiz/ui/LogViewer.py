@@ -8,7 +8,7 @@ import wx
 # end wxGlade
 
 # begin wxGlade: extracode
-from wx.lib.agw.ultimatelistctrl import UltimateListCtrl
+from wx.lib.agw.ultimatelistctrl import UltimateListCtrl, ULC_HAS_VARIABLE_ROW_HEIGHT
 # end wxGlade
 
 
@@ -18,11 +18,11 @@ class LogViewer(wx.Frame):
 		kwds["style"] = wx.DEFAULT_FRAME_STYLE
 		wx.Frame.__init__(self, *args, **kwds)
 		self.label_5 = wx.StaticText(self, wx.ID_ANY, _("Search:"))
-		self.search = wx.TextCtrl(self, 1000, "")
+		self.search = wx.SearchCtrl(self, 1000, "")
 		self.panel_2 = wx.Panel(self, wx.ID_ANY)
 		self.logname = wx.Choice(self, 1001, choices=[])
 		self.loglevel = wx.Choice(self, 1002, choices=[])
-		self.log = UltimateListCtrl(self, 2000, agwStyle=wx.LC_REPORT|wx.LC_VRULES|wx.LC_HRULES)
+		self.log = wx.ListCtrl(self, 2000, style=wx.LC_REPORT|wx.LC_VRULES|wx.LC_HRULES)
 		self.statusbar = self.CreateStatusBar(1, wx.ST_SIZEGRIP)
 
 		self.__set_properties()

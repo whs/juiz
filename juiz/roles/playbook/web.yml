@@ -64,7 +64,7 @@
     - reload firewalld
   handlers:
   - name: compile source
-    shell: "/var/juiz/buildpack/bin/compile {{app_dir}} {{cache_dir}} {{env_dir}} 2>&1 | tee /var/juiz/compile.log"
+    shell: "/usr/bin/systemd-cat -t juiz-compile /var/juiz/buildpack/bin/compile {{app_dir}} {{cache_dir}} {{env_dir}}"
     environment:
       STACK: cedar-14
     notify:

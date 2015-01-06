@@ -13,6 +13,7 @@ from .EditMachine import EditMachine
 from .BuildpackList import BuildpackList
 from .GetIPDialog import GetIPDialog
 from .ProjectConfig import ProjectConfig
+from .LogViewer import LogViewer
 from . import util as gui_util
 
 class Main(MainGen):
@@ -20,7 +21,8 @@ class Main(MainGen):
 		'deploy': 1001,
 		'bp_manage': 3001,
 		'machine_list': 5000,
-		'run_cmd': 4000
+		'run_cmd': 4000,
+		'logview': 4001,
 	}
 	project = None
 	close_on_new = False
@@ -46,6 +48,7 @@ class Main(MainGen):
 		self.Connect(self.ids['bp_manage'], -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_buildpack)
 		self.Connect(wx.ID_ABOUT, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_about)
 		self.Connect(self.ids['run_cmd'], -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.run_cmd)
+		self.Connect(self.ids['logview'], -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.logview_cmd)
 		
 		if self.project:
 			self.Connect(wx.ID_SAVE, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_save)
@@ -134,6 +137,7 @@ class Main(MainGen):
 
 		menu = wx.Menu(event.GetItem().GetText())
 		menu.Append(self.ids['run_cmd'], _('&Run command'))
+		menu.Append(self.ids['logview'], _('View &logs'))
 		self.PopupMenu(menu, point)
 		menu.Destroy()
 
@@ -227,3 +231,8 @@ class Main(MainGen):
 				cmd = pipes.quote(dialog.GetValue())
 			)
 			gui_util.run_terminal(cmd)
+
+	def logview_cmd(self, evt):
+		machine = self.project.get_machine(self._last_context.GetText())
+
+		LogViewer(self.project, machine, self).Show()

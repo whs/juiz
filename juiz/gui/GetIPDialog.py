@@ -15,14 +15,7 @@ class GetIPDialog(wx.ProgressDialog):
 		self.Pulse(_('Getting IP of {0}').format(self.machine.name))
 
 		self.Connect(-1, -1, CompletedEvent.event_type, self.on_complete)
-
-	def ShowModal(self):
 		GetIPThread(self.project, self.machine, self).start()
-		super(GetIPDialog, self).ShowModal()
-
-	def ShowWindowModal(self):
-		GetIPThread(self.project, self.machine, self).start()
-		super(GetIPDialog, self).ShowWindowModal()
 
 	def on_complete(self, evt):
 		self.ip = evt.value
