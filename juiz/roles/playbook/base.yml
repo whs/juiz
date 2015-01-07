@@ -17,6 +17,8 @@
     service: name=firewalld.service enabled=yes state=started
   - name: copy juiz runtime
     synchronize: src={{runtime}}/ dest={{runtime_dir}} recursive=yes delete=yes
+  - name: clear environment directory
+    file: path={{env_dir}} state=absent
   - name: create environment directory
     file: path={{env_dir}} state=directory
   - name: dump host environment
