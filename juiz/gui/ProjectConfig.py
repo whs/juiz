@@ -47,8 +47,8 @@ class ProjectConfig(PC):
 		self.EndModal(True)
 
 	def on_close(self, evt):
-		self.Close()
 		self.EndModal(False)
+		self.Destroy()
 
 	def update_env(self):
 		try:

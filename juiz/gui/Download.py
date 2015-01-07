@@ -83,8 +83,8 @@ class Download(LogWindow):
 
 	def close(self, evt):
 		buildpack.load_cfg()
-		self.Close()
 		self.EndModal(True)
+		self.Destroy()
 
 class DownloadThread(threading.Thread):
 	def __init__(self, name, url, wnd):

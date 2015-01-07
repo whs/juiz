@@ -36,8 +36,7 @@ class EditMachine(Base):
 		self.load_roles()
 
 	def on_cancel(self, event):
-		self.Show(False)
-		self.Close()
+		self.Destroy()
 
 	def on_save(self, event=None):
 		if self.machine.name != self.name.GetValue():

@@ -29,7 +29,7 @@ class BuildpackList(BPL):
 			self.buildpack_list.Append([key, value['source']])
 
 	def on_close(self, event):
-		self.Close()
+		self.EndModal(True)
 		self.Destroy()
 
 	def on_add(self, event):

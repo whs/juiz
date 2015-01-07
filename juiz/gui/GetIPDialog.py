@@ -21,6 +21,7 @@ class GetIPDialog(wx.ProgressDialog):
 		self.ip = evt.value
 		self.Update(100)
 		self.EndModal(self.ip != None)
+		self.Destroy()
 
 class GetIPThread(threading.Thread):
 	def __init__(self, project, machine, wnd):

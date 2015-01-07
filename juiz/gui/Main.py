@@ -1,6 +1,7 @@
 import os
 import wx
 import pipes
+import weakref
 
 from wx.lib.agw import ultimatelistctrl as ulc
 
@@ -26,6 +27,7 @@ class Main(MainGen):
 	}
 	project = None
 	close_on_new = False
+	_singleton_wnd = weakref.WeakValueDictionary()
 	_changed = False
 	
 	@property
@@ -183,7 +185,14 @@ class Main(MainGen):
 			wx.MessageDialog(self, _('No machine selected'), _('Edit machine'), wx.ICON_ASTERISK).ShowWindowModal()
 			return
 
-		EditMachine(self, self.project, machine).Show()
+		key = 'edit_{}'.format(machine.name)
+
+		if key not in self._singleton_wnd or not self._singleton_wnd[key]:
+			wnd = EditMachine(self, self.project, machine)
+			wnd.Show()
+			self._singleton_wnd[key] = wnd
+		else:
+			self._singleton_wnd[key].Raise()
 
 	def remove_machine(self, event):
 		machine = self.get_selected_machine_name()

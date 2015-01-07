@@ -44,8 +44,8 @@ class Deploy(LogWindow):
 			self.SetEscapeId(wx.ID_NONE)
 
 	def close(self, evt):
-		self.Close()
 		self.EndModal(True)
+		self.Destroy()
 
 	def cleanup(self, evt):
 		self.logger.removeHandler(self.handler)
