@@ -61,15 +61,24 @@ class BaseProvider(object):
 	def create_machines(self):
 		machines = {}
 		nodes = self.driver.list_nodes()
+		wait_list = []
 		for machine in self.project.list_machines():
 			formatted_name = 'juiz-{0}-{1}'.format(self.project.id, machine.name)
 			try:
 				node = [x for x in nodes if x.name == formatted_name][0]
 				self.log.info('Machine %s is already exists', machine.name)
 				self.log.log(deploy.LOG_PROGRESS, 2)
+				machines[machine.name] = {'node': node, 'ip': node.public_ips[0], 'name': machine.name}
 			except IndexError:
-				node = self.create_machine(machine, formatted_name)
+				wait_list.append((machine, self.create_machine(machine, formatted_name)))
+
+
+		for machine, node in wait_list:
+			self.log.info('Waiting for %s to up', machine.name)
+			node = self.driver.wait_until_running([node])[0][0]
+			self.log.log(deploy.LOG_PROGRESS, 1)
 			machines[machine.name] = {'node': node, 'ip': node.public_ips[0], 'name': machine.name}
+
 		return machines
 
 	def create_machine(self, machine, formatted_name):
@@ -84,9 +93,6 @@ class BaseProvider(object):
 			**self.get_extra_create_options(machine)
 		)
 		self.post_create_machine(machine, node)
-		self.log.log(deploy.LOG_PROGRESS, 1)
-		self.log.info('Waiting for %s to up', machine.name)
-		node, ip = self.driver.wait_until_running([node])[0]
 		self.log.log(deploy.LOG_PROGRESS, 1)
 		self.log.info('%s created', machine.name)
 		return node

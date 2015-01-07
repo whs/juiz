@@ -25,7 +25,7 @@ logging.addLevelName(LOG_PROGRESS, 'PROGRESS')
 logging.addLevelName(LOG_PROGRESS_TOTAL, 'PROGRESS_TOTAL')
 
 constants.HOST_KEY_CHECKING = False
-# utils.VERBOSITY = 4
+utils.VERBOSITY = 4
 
 class DeployThread(threading.Thread):
 	def __init__(self, project, *args, **kwargs):

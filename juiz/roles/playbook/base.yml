@@ -1,10 +1,13 @@
 ---
 - hosts: all
-  vars:
-    env_dir: /var/juiz/environment
+  gather_facts: no
   tasks:
   - name: wait for ssh to start
     local_action: "wait_for port=22 host={{ansible_ssh_host}} search_regex=OpenSSH"
+- hosts: all
+  vars:
+    env_dir: /var/juiz/environment
+  tasks:
   - name: create working directory
     file: path=/var/juiz state=directory
   - name: install dependencies
