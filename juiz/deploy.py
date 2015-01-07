@@ -52,7 +52,9 @@ class Deployable(object):
 			.write('- .juiz\n- .heroku\n')
 
 		self.__log.info('Running deployment...')
-		self.run_playbooks(self.inventory)
+		if not self.run_playbooks(self.inventory):
+			self.__log.error('A role has failed. Deployment stopped.')
+			return
 		self.__log.info('Finished')
 
 		for k, v in self.get_post_messages(self.inventory).iteritems():
@@ -117,7 +119,8 @@ class Deployable(object):
 		self.__log.log(LOG_PROGRESS_TOTAL, len(roles))
 		env = {}
 		for item in roles:
-			item.run(self, self.__log, inventory, env)
+			if not item.run(self, self.__log, inventory, env):
+				return False
 			env = dict(env.items() + item.get_env().items())
 
 			# cleanup
@@ -125,6 +128,7 @@ class Deployable(object):
 			inventory.lift_also_restriction()
 
 			self.__log.log(LOG_PROGRESS, 1)
+		return True
 
 	def get_post_messages(self, inventory):
 		roles = self.list_roles(inventory)

@@ -25,11 +25,35 @@ class AnsibleRole(Role):
 		playbook = self.build_playbook()
 		playbook.run()
 
-		self.log.debug('OK %s', `self.ansible_stats.ok`)
-		self.log.debug('Changed %s', `self.ansible_stats.changed`)
-		self.log.debug('Skipped %s', `self.ansible_stats.skipped`)
-		self.log.debug('Unreachable %s', `self.ansible_stats.dark`)
-		self.log.debug('Failed %s', `self.ansible_stats.failures`)
+		self.log.debug(
+			'OK: %s Changed: %s Skipped: %s',
+			self.format_stat(self.ansible_stats.ok),
+			self.format_stat(self.ansible_stats.changed),
+			self.format_stat(self.ansible_stats.skipped),
+		)
+
+		out = True
+
+		if self.ansible_stats.dark != {}:
+			self.log.error('Unreachable: %s', self.format_stat(self.ansible_stats.dark))
+			out = False
+		if self.ansible_stats.failures != {}:
+			self.log.error('Failed: %s', self.format_stat(self.ansible_stats.failures))
+			out = False
+
+		return out
+
+	def format_stat(self, stat):
+		stat = stat.items()
+		out = ', '.join([
+			'{0}[{1}]'.format(*x)
+			for x in stat
+		])
+
+		if not out:
+			return '-'
+
+		return out
 
 	def build_playbook(self, **kwargs):
 		return PlayBook(
