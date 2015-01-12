@@ -107,7 +107,10 @@ class DownloadThread(threading.Thread):
 		self.unblock(self.pty_err_master)
 
 		while self.proc.returncode == None:
-			streams = self.poller.wait(1)
+			try:
+				streams = self.poller.wait(1)
+			except IOError:
+				streams = []
 
 			for item in streams:
 				txt = os.read(item.fileobj, 1000)

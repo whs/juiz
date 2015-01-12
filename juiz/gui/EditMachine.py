@@ -112,4 +112,4 @@ class EditMachine(Base):
 
 			sizer.Add(box, 0, wx.EXPAND)
 		
-		self.Layout()
+			self.Layout()

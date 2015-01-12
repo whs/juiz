@@ -36,6 +36,7 @@ class MySQLMachineConfig(BaseRoleConfig):
 		outer_sizer.Add(text, 0, wx.EXPAND)
 
 		self.SetSizer(outer_sizer)
+		self.Layout()
 
 	def save(self, config, section):
 		config.set(section, 'mysql_root', self.root.GetValue())

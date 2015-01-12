@@ -13,6 +13,7 @@ class GetIPDialog(wx.ProgressDialog):
 		kwargs['style'] = wx.PD_AUTO_HIDE | wx.SYSTEM_MENU
 		super(GetIPDialog, self).__init__(_('Getting IP'), '', 100, *args, **kwargs)
 		self.Pulse(_('Getting IP of {0}').format(self.machine.name))
+		self.Fit()
 
 		self.Connect(-1, -1, CompletedEvent.event_type, self.on_complete)
 		GetIPThread(self.project, self.machine, self).start()
@@ -21,7 +22,6 @@ class GetIPDialog(wx.ProgressDialog):
 		self.ip = evt.value
 		self.Update(100)
 		self.EndModal(self.ip != None)
-		self.Destroy()
 
 class GetIPThread(threading.Thread):
 	def __init__(self, project, machine, wnd):

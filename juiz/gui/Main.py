@@ -229,13 +229,17 @@ class Main(MainGen):
 		ip_dialog = GetIPDialog(self.project, machine)
 		if ip_dialog.ShowModal() == 0 or ip_dialog.ip == None:
 			wx.MessageDialog(self, _('IP of {} cannot be determined').format(machine.name), _('Cannot get IP'), wx.OK | wx.CENTER | wx.ICON_EXCLAMATION).ShowWindowModal()
+			ip_dialog.Destroy()
 			return
+
+		ip = ip_dialog.ip
+		ip_dialog.Destroy()
 
 		dialog = wx.TextEntryDialog(self, _('Enter command. Web application is deployed at /app.'), _('Run command on {ip}'.format(ip=ip_dialog.ip)), 'bash')
 
 		if dialog.ShowModal() == wx.ID_OK:
 			cmd = 'ssh -i "{key}" -t "root@{ip}" "/var/juiz/remote/remote-login \'{cmd}\'"'.format(
-				ip = ip_dialog.ip,
+				ip = ip,
 				key = os.path.expanduser(self.project.config.get('main', 'ssh_key')),
 				cmd = pipes.quote(dialog.GetValue())
 			)

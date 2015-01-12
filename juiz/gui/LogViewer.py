@@ -23,6 +23,9 @@ class LogViewer(LV):
 	command = 'journalctl -n 10000000 -b -f -o json'
 	draw_freq = 50
 
+	YELLOW = wx.Colour(239, 204, 0)
+	GRAY = wx.Colour(150, 150, 150)
+
 	_draw_queue = []
 	ids = {
 		'search': 1000,
@@ -80,9 +83,11 @@ class LogViewer(LV):
 			dialog = GetIPDialog(self.project, self.machine)
 			if not dialog.ShowModal() or dialog.ip == None:
 				wx.MessageDialog(self.GetParent(), _('IP of {} cannot be determined').format(self.machine.name), _('Cannot get IP'), wx.OK | wx.CENTER | wx.ICON_EXCLAMATION).ShowWindowModal()
+				dialog.Destroy()
 				self.Close()
 				self.Destroy()
 				return
+			dialog.Destroy()
 			self.ip = dialog.ip
 			self.connect()
 		evt.Skip()
@@ -139,7 +144,13 @@ class LogViewer(LV):
 		self.timer.Start(self.draw_freq)
 
 	def loop(self, evt):
-		streams = self.poller.wait(0.01)
+		try:
+			streams = self.poller.wait(0.05)
+		except IOError:
+			evt.RequestMore()
+			return
+		except ValueError:
+			return
 
 		for stream in streams:
 			if stream.fileobj == self.connection.stderr:
@@ -161,7 +172,8 @@ class LogViewer(LV):
 
 		self.log.Freeze()
 		for item in self._draw_queue:
-			self.log.Append(item)
+			row = self.log.AppendItem(item['log'])
+			self.log.SetItemTextColour(row, item.get('color', wx.BLACK))
 		self._draw_queue = []
 		self.log.Thaw()
 
@@ -190,11 +202,14 @@ class LogViewer(LV):
 			self.logname.Append(log_name)
 			self.identifiers.append(log_name)
 
-		self._draw_queue.append([
-			self.format_date(log['__REALTIME_TIMESTAMP']),
-			identifier,
-			log.get('MESSAGE', _('No message'))
-		])
+		self._draw_queue.append({
+			'log': [
+				self.format_date(log['__REALTIME_TIMESTAMP']),
+				identifier,
+				log.get('MESSAGE', _('No message'))
+			],
+			'color': self.get_log_color(log)
+		})
 
 	def is_filtered(self, log):
 		level = int(log.get('PRIORITY', 6))
@@ -209,3 +224,13 @@ class LogViewer(LV):
 
 	def format_date(self, date):
 		return str(datetime.fromtimestamp(float(date)/1E6))
+
+	def get_log_color(self, log):
+		if log['PRIORITY'] <= 3:
+			return wx.RED
+		elif log['PRIORITY'] == 4:
+			return self.YELLOW
+		elif log['PRIORITY'] >= 7:
+			return self.GRAY
+		else:
+			return wx.BLACK
