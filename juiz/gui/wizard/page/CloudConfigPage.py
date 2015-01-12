@@ -17,8 +17,6 @@ class CloudConfigPage(WizardInputListPage):
 		if not self.provider:
 			raise RuntimeError, 'Provider is not set'
 		self.Connect(-1, -1, ProgressEvent.event_type, self.on_progress)
-		self.Connect(-1, -1, MetadataLoadedEvent.event_type, self.on_loaded)
-		self.Connect(-1, -1, LocationLoadedEvent.event_type, self.on_location_loaded)
 		self.Connect(-1, -1, FetchErrorEvent.event_type, self.on_error)
 		if 'Location' in self.fields:
 			self.Bind(wx.EVT_CHOICE, self.on_change_location, self.get_widget('Location'))
@@ -28,27 +26,24 @@ class CloudConfigPage(WizardInputListPage):
 			self.progress = wx.ProgressDialog('Loading', 'Loading data', self.progress_count, parent=self)
 			self.progress.Pulse('Connecting')
 			threading.Thread(target=self.fetch).start()
+			self.progress.Fit()
 			self.progress.ShowModal()
 		event.Skip()
 
 	def on_progress(self, event):
 		self.progress.Update(*event.value)
+		self.progress.Fit()
 
-	def on_loaded(self, event):
-		if self.progress:
+		if event.done:
 			self.progress.EndModal(1)
 			self.progress.Destroy()
 
-		self.update_lists()
-
-	def on_location_loaded(self, event):
-		if self.progress:
-			self.progress.EndModal(1)
-			self.progress.Destroy()
-
-		self.update_size()
-		self.update_image()
-		self.check_allow_forward()
+			if event.type == 'location':
+				self.update_size()
+				self.update_image()
+				self.check_allow_forward()
+			else:
+				self.update_lists()
 
 	def on_error(self, event):
 		if self.progress:
@@ -97,13 +92,12 @@ class CloudConfigPage(WizardInputListPage):
 					self.sizes = self.driver.list_sizes()
 
 			self.fetch_post()
-			wx.PostEvent(self, MetadataLoadedEvent())
 		except Exception, e:
 			print `e`
 			wx.PostEvent(self, FetchErrorEvent(e))
 
 	def fetch_post(self):
-		wx.PostEvent(self, ProgressEvent([4, 'Done']))
+		wx.PostEvent(self, ProgressEvent([4, 'Done'], done=True))
 
 	def fetch_location(self):
 		location_id = self.get_values_dict()['location']
@@ -111,20 +105,19 @@ class CloudConfigPage(WizardInputListPage):
 		try:
 			if 'Image' in self.fields:
 				try:
-					wx.PostEvent(self, ProgressEvent([1, 'Fetching images list']))
+					wx.PostEvent(self, ProgressEvent([1, 'Fetching images list'], type='location'))
 					self.images = self.driver.list_images(location)
 				except TypeError:
 					pass
 
 			if 'Size' in self.fields:
 				try:
-					wx.PostEvent(self, ProgressEvent([2, 'Fetching machine sizes']))
+					wx.PostEvent(self, ProgressEvent([2, 'Fetching machine sizes'], type='location'))
 					self.sizes = self.driver.list_sizes(location)
 				except TypeError:
 					pass
 
-			wx.PostEvent(self, ProgressEvent([3, 'Done']))
-			wx.PostEvent(self, LocationLoadedEvent())
+			wx.PostEvent(self, ProgressEvent([3, 'Done'], done=True, type='location'))
 		except Exception, e:
 			print `e`
 			wx.PostEvent(self, FetchErrorEvent(e))
@@ -206,12 +199,13 @@ class CloudConfigPage(WizardInputListPage):
 
 class ProgressEvent(ValueEvent):
 	event_type = wx.NewId()
+	done = False
+	type = 'default'
 
-class MetadataLoadedEvent(SimpleEvent):
-	event_type = wx.NewId()
+	def __init__(self, value=None, done=False, type='default', *args, **kwargs):
+		super(ProgressEvent, self).__init__(value, *args, **kwargs)
+		self.done = done
+		self.type = type
 
 class FetchErrorEvent(ValueEvent):
-	event_type = wx.NewId()
-
-class LocationLoadedEvent(SimpleEvent):
 	event_type = wx.NewId()
