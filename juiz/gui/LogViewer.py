@@ -172,7 +172,7 @@ class LogViewer(LV):
 
 		self.log.Freeze()
 		for item in self._draw_queue:
-			row = self.log.AppendItem(item['log'])
+			row = self.log.Append(item['log'])
 			self.log.SetItemTextColour(row, item.get('color', wx.BLACK))
 		self._draw_queue = []
 		self.log.Thaw()
@@ -226,6 +226,7 @@ class LogViewer(LV):
 		return str(datetime.fromtimestamp(float(date)/1E6))
 
 	def get_log_color(self, log):
+		return wx.BLACK
 		if log['PRIORITY'] <= 3:
 			return wx.RED
 		elif log['PRIORITY'] == 4:
