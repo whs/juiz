@@ -8,13 +8,36 @@
       - mariadb-server
   - name: start mariadb
     service: name=mariadb enabled=yes state=started
-  - name: secure root password
-    mysql_user: name=root password={{mysql_root|default(root_pw)}} check_implicit_admin=yes login_password={{root_pw}} login_user=root
+
+  # root securing
+  - name: secure root password (trying default root password)
+    mysql_user: name=root host=localhost password={{root_pw}} check_implicit_admin=yes login_password={{root_default_pw}} login_user=root
     ignore_errors: yes
+  - name: secure root password (trying user root password)
+    mysql_user: name=root host=localhost password={{root_pw}} login_password={{root_pw}} login_user=root
+    ignore_errors: yes
+  - name: secure root password for all hosts
+    mysql_user: name=root host={{ item }} password={{root_pw}} login_user=root login_password={{root_pw}}
+    with_items:
+    - "{{ansible_hostname}}"
+    - 127.0.0.1
+    - ::1
+
+  # anonymous user removal
+  - name: ensure anonymous users are not in the database
+    mysql_user: name='' host={{ item }} state=absent login_user=root login_password={{root_pw}}
+    with_items:
+    - localhost
+    - "{{ansible_hostname}}"
+  - name: remove the test database
+    mysql_db: name=test state=absent login_user=root login_password={{root_pw}}
+
+  # create app db
   - name: create app database
-    mysql_db: name=app collation=utf8_general_ci encoding=utf8 login_password={{mysql_root|default(root_pw)}} login_user=root
+    mysql_db: name=app collation=utf8_general_ci encoding=utf8 login_password={{root_pw}} login_user=root
   - name: create app user
-    mysql_user: name=app host=% password={{mysql_app|default(app_pw)}} priv=app.*:ALL login_password={{mysql_root|default(root_pw)}} login_user=root
+    mysql_user: name=app host=% password={{app_pw}} priv=app.*:ALL login_password={{root_pw}} login_user=root
+
   - name: allow mysql access from web machines
     firewalld: rich_rule='rule family="ipv4" service name="mysql" source address="{{item}}" accept' state=enabled permanent=true
     with_items: web_ip

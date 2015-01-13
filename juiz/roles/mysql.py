@@ -18,7 +18,10 @@ class MySQLRole(AnsibleRole):
 		if 'mysql_root' in host.vars and host.vars['mysql_root']:
 			return host.vars['mysql_root']
 		else:
-			return hashlib.sha256(self.project.id).hexdigest()
+			return self.get_default_root_password()
+
+	def get_default_root_password(self):
+		return hashlib.sha256(self.project.id).hexdigest()
 
 	def get_app_password(self):
 		host = self.inventory.get_hosts(self.name)[0]
@@ -32,11 +35,14 @@ class MySQLRole(AnsibleRole):
 		base = super(MySQLRole, self).get_ansible_vars()
 		base['web_ip'] = self.get_ip_of_role('web')
 		base['root_pw'] = self.get_root_password()
+		base['root_default_pw'] = self.get_default_root_password()
 		base['app_pw'] = self.get_app_password()
 		return base
 
 	def get_post_message(self):
-		return 'use environment variables DATABASE_URL or JUIZ_MARIADB_URL to connect'
+		return '''use environment variables DATABASE_URL or JUIZ_MARIADB_URL to connect. Root password: {0}'''.format(
+			self.get_root_password()
+		)
 
 	def get_env(self):
 		ip = self.get_ip_of_role()[0]
