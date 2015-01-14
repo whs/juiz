@@ -57,4 +57,7 @@ class MachineMixin(object):
 
 class EnvironmentMixin(object):
 	def get_env(self):
-		return dict(self.config.items('env'))
+		try:
+			return dict(self.config.items('env'))
+		except ConfigParser.NoSectionError:
+			return {}

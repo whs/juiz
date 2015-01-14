@@ -4,6 +4,11 @@
   tasks:
   - name: wait for ssh to start
     local_action: "wait_for port=22 host={{ansible_ssh_host}} search_regex=OpenSSH"
+- hosts: install_ssh
+  gather_facts: no
+  tasks:
+  - name: install ssh host key
+    authorized_key: user=root key={{ansible_ssh_private_key_file}}
 - hosts: all
   vars:
     env_dir: /var/juiz/environment
@@ -25,5 +30,5 @@
   - name: create environment directory
     file: path={{env_dir}} state=directory
   - name: dump host environment
-    copy: dest={{env_dir}}/{{item.key}} content={{item.value}}
+    copy: dest="{{env_dir}}/{{item.key}}" content="{{item.value}}"
     with_dict: host_env

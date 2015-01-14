@@ -41,16 +41,14 @@ class CloudStackZoneConfigWizardPage(CloudConfigPage):
 
 	def __init__(self, *args, **kwargs):
 		super(CloudStackZoneConfigWizardPage, self).__init__(*args, **kwargs)
-		self.Connect(-1, -1, NetworkLoadedEvent.event_type, self.on_network_loaded)
 		self.Bind(wx.EVT_CHOICE, self.on_change_project, self.get_widget('Project'))
 
-	def on_network_loaded(self, event):
-		if self.progress:
-			self.progress.EndModal(1)
-			self.progress.Destroy()
+	def on_progress(self, event):
+		super(CloudStackZoneConfigWizardPage, self).on_progress(event)
 
-		self.update_network()
-		self.check_allow_forward()
+		if event.done and event.type == 'project':
+			self.update_network()
+			self.check_allow_forward()
 
 	def on_change_project(self, event):
 		self.progress = wx.ProgressDialog('Loading', 'Loading network list', 3, parent=self)
@@ -66,23 +64,22 @@ class CloudStackZoneConfigWizardPage(CloudConfigPage):
 			wx.PostEvent(self, ProgressEvent([5, 'Fetching network list']))
 			self.networks = self.driver.ex_list_networks()
 
-			wx.PostEvent(self, ProgressEvent([6, 'Done']))
+			wx.PostEvent(self, ProgressEvent([6, 'Done'], done=True))
 		except Exception, e:
 			wx.PostEvent(self, FetchErrorEvent(e))
 
 	def fetch_networks(self):
 		try:
-			wx.PostEvent(self, ProgressEvent([1, 'Fetching project list']))
+			wx.PostEvent(self, ProgressEvent([1, 'Fetching project list'], type='project'))
 			project_id = self.get_values_dict()['project']
 			project = None
 			if project_id:
 				project = [x for x in self.projects if x.id == project_id][0]
 
-			wx.PostEvent(self, ProgressEvent([2, 'Fetching network associated with project']))
+			wx.PostEvent(self, ProgressEvent([2, 'Fetching network associated with project'], type='project'))
 			self.networks = self.driver.ex_list_networks(project)
 
-			wx.PostEvent(self, ProgressEvent([3, 'Done']))
-			wx.PostEvent(self, NetworkLoadedEvent())
+			wx.PostEvent(self, ProgressEvent([3, 'Done'], done=True, type='project'))
 		except Exception, e:
 			wx.PostEvent(self, FetchErrorEvent(e))
 
@@ -109,8 +106,11 @@ class CloudStackZoneConfigWizardPage(CloudConfigPage):
 		widget = self.get_widget('Network')
 		widget.Clear()
 
+		default = self.get_default_value('Network')
 		for item in self.networks:
-			widget.Append(item.displaytext, item.id)
+			index = widget.Append(item.displaytext, item.id)
+			if default == item.id:
+				widget.SetSelection(index)
 
 	def get_network_type(self):
 		return 'choice'
@@ -123,6 +123,3 @@ class CloudStackZoneConfigWizardPage(CloudConfigPage):
 
 	def get_project_choices(self):
 		return {}
-
-class NetworkLoadedEvent(SimpleEvent):
-	event_type = wx.NewId()

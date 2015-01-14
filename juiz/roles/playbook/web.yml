@@ -22,11 +22,11 @@
       - mariadb-devel
       - gcc
   - name: create app user
-    user: name=app createhome=no home={{app_dir}} shell=/sbin/nologin
+    user: name=app createhome=no home=/app shell=/sbin/nologin
 
   # env
   - name: dump environment to directory
-    copy: dest={{env_dir}}/{{item.key}} content={{item.value}} owner=app
+    copy: dest="{{env_dir}}/{{item.key}}" content="{{item.value}}" owner=app
     with_dict: env
 
   # buildpack
@@ -64,13 +64,7 @@
     - reload firewalld
   handlers:
   - name: compile source
-    shell: "/usr/bin/systemd-cat -t juiz-compile /var/juiz/buildpack/bin/compile {{app_dir}} {{cache_dir}} {{env_dir}}"
-    environment:
-      STACK: cedar-14
-    notify:
-    - move source
-  - name: move source
-    shell: "rm -r /app; cp -r {{app_dir}} /app && chown -R app /app"
+    shell: "{{runtime_dir}}/compile {{app_dir}} {{cache_dir}} {{env_dir}}"
 
   # services
   - name: reload systemd

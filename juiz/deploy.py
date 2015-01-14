@@ -7,8 +7,8 @@ from libcloud.compute.types import Provider
 from ansible.inventory import Inventory
 from ansible.inventory.group import Group
 from ansible.inventory.host import Host
-from ansible import constants
-from ansible import utils
+from ansible import constants, utils
+from ansible.runner import Runner
 
 from . import util, buildpack, roles
 
@@ -81,7 +81,9 @@ class Deployable(object):
 
 		machine.set_variable('ansible_ssh_user', 'root')
 		machine.set_variable('ansible_ssh_host', node['ip'])
-		machine.set_variable('ansible_ssh_private_key_file', self.config.get('main', 'ssh_key'))
+		if 'password' in node['node'].extra:
+			machine.set_variable('ansible_ssh_pass', node['node'].extra['password'])
+		machine.set_variable('ansible_ssh_private_key_file', self.get_ssh_key())
 		machine.set_variable('host_env', env)
 
 		return machine
@@ -93,6 +95,12 @@ class Deployable(object):
 		# fix synchronize module
 		all_group = Group('all')
 		inventory.add_group(all_group)
+
+		install_ssh = Group('install_ssh')
+		for machine in machines.itervalues():
+			if 'ansible_ssh_pass' in machine.vars:
+				install_ssh.add_host(machine)
+		inventory.add_group(install_ssh)
 
 		groups = [Group(x) for x in set(
 			itertools.chain(*[
@@ -136,10 +144,13 @@ class Deployable(object):
 
 		return out
 
+	def get_ssh_key(self):
+		return self.config.get('main', 'ssh_key')
+
 	@util.memoized
 	def list_roles(self, inventory):
 		out = ['base']
-		out += [x for x in inventory.list_groups() if x != 'all']
+		out += [x for x in inventory.list_groups() if x not in ('all', 'install_ssh')]
 
 		# build role object
 		out = [util.import_by_name(roles.registry[x])() for x in out]

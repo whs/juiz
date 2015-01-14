@@ -36,19 +36,17 @@ class CloudConfigPage(WizardInputListPage):
 
 		if event.done:
 			self.progress.EndModal(1)
-			self.progress.Destroy()
 
 			if event.type == 'location':
 				self.update_size()
 				self.update_image()
 				self.check_allow_forward()
-			else:
+			elif event.type == 'default':
 				self.update_lists()
 
 	def on_error(self, event):
 		if self.progress:
 			self.progress.EndModal(0)
-			self.progress.Destroy()
 
 		wx.MessageDialog(self.GetParent(), 'Unable to fetch metadata:\n' + str(event.value), 'Error', wx.OK | wx.ICON_ERROR).ShowModal()
 		self.GetParent().ShowPage(self.GetPrev(), False)
@@ -148,7 +146,7 @@ class CloudConfigPage(WizardInputListPage):
 
 		widget.Clear()
 
-		default = self.get_default_value('Location')
+		default = self.get_default_value('Size')
 		for item in self.sizes:
 			index = widget.Append('{0} ({1} MB RAM, {2} GB Disk, ${3:.2f}/hr)'.format(item.name, item.ram, item.disk, item.price), item.id)
 			if default == item.id:

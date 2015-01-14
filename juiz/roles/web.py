@@ -10,10 +10,10 @@ class WebRole(AnsibleRole):
 	def run(self, project, *args, **kwargs):
 		# ignore juiz configuration folder
 		# and .heroku which some buildpack use
-		open(os.path.join(self.project.root, '.rsync-filter'), 'w') \
-			.write('- .juiz\n- .heroku\n')
+		open(os.path.join(project.root, '.rsync-filter'), 'w') \
+			.write('- .juiz\n- .heroku\n- .bp\n')
 
-		super(WebRole, self).run(project, *args, **kwargs)
+		return super(WebRole, self).run(project, *args, **kwargs)
 
 	def get_post_message(self):
 		return 'Point your DNS to {}'.format(', '.join(self.get_ip_of_role()))
