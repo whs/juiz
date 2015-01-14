@@ -48,9 +48,6 @@ class Deployable(object):
 		nodes = self.get_driver().deploy()
 		self.inventory = self.build_inventory(nodes)
 
-		open(os.path.join(self.root, '.rsync-filter'), 'w') \
-			.write('- .juiz\n- .heroku\n')
-
 		self.__log.info('Running deployment...')
 		if not self.run_playbooks(self.inventory):
 			self.__log.error('A role has failed. Deployment stopped.')
