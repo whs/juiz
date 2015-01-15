@@ -2,14 +2,9 @@
 - hosts: memcache
   tasks:
   - name: install memcache
-    yum: pkg=memcached state=latest
+    apt: name=memcached state=latest
   - name: allow memcache access from web machines
-    firewalld: rich_rule='rule family="ipv4" port port="11211" protocol="tcp" source address="{{item}}" accept' state=enabled permanent=true
+    ufw: rule=allow proto=tcp from_ip="{{item}}" port="11211"
     with_items: web_ip
-    notify:
-    - reload firewalld
   - name: start memcache
     service: name=memcached enabled=yes state=started
-  handlers:
-  - name: reload firewalld
-    command: /usr/bin/firewall-cmd --reload

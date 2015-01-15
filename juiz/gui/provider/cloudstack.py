@@ -34,7 +34,7 @@ class CloudStackCloudConfigWizardPage(WizardInputListPage):
 class CloudStackZoneConfigWizardPage(CloudConfigPage):
 	fields = ['Location', 'Size', 'Image', 'Project', 'Network']
 	nullable_field = ['Project']
-	help_text = 'Juiz requires CentOS 7. Please select CentOS 7 image from the server.'
+	help_text = 'Please select Ubuntu 14.04 LTS image from the server.'
 	progress_count = 6
 	provider = Provider.CLOUDSTACK
 	config_section = 'target:{0}'.format(Provider.CLOUDSTACK)

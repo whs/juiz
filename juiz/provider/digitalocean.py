@@ -4,7 +4,7 @@ from .base import BaseProvider
 from ..util import memoized
 
 class DigitalOceanProvider(BaseProvider):
-	IMAGE_ID = 7053293
+	IMAGE_ID = 9801950
 	ssh_key = None
 	
 	def get_image(self, machine):

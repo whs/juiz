@@ -2,12 +2,12 @@
 - hosts: mysql
   tasks:
   - name: install dependencies
-    yum: pkg={{item}} state=latest
+    apt: name={{item}} state=latest
     with_items:
-      - MySQL-python
+      - python-mysqldb
       - mariadb-server
   - name: start mariadb
-    service: name=mariadb enabled=yes state=started
+    service: name=mysql enabled=yes state=started
 
   # root securing
   - name: secure root password (trying default root password)
@@ -39,10 +39,5 @@
     mysql_user: name=app host=% password={{app_pw}} priv=app.*:ALL login_password={{root_pw}} login_user=root
 
   - name: allow mysql access from web machines
-    firewalld: rich_rule='rule family="ipv4" service name="mysql" source address="{{item}}" accept' state=enabled permanent=true
+    ufw: rule=allow proto=tcp from_ip="{{item}}" port=mysql
     with_items: web_ip
-    notify:
-    - reload firewalld
-  handlers:
-  - name: reload firewalld
-    command: /usr/bin/firewall-cmd --reload

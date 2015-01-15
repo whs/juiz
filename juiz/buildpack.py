@@ -15,10 +15,11 @@ _cfg = {
 }
 
 INITIAL_BUILDPACK = {
-	'python': 'https://github.com/whs/heroku-buildpack-python.git',
+	'python': 'https://github.com/heroku/heroku-buildpack-python.git',
 	'java': 'https://github.com/heroku/heroku-buildpack-java.git',
 	'nodejs': 'https://github.com/heroku/heroku-buildpack-nodejs.git',
-	'ruby': 'https://github.com/heroku/heroku-buildpack-ruby.git'
+	'ruby': 'https://github.com/heroku/heroku-buildpack-ruby.git',
+	'php': 'https://github.com/cloudfoundry/php-buildpack.git'
 }
 
 def load_cfg():

@@ -15,14 +15,18 @@
   tasks:
   - name: create working directory
     file: path=/var/juiz state=directory
+  - name: update apt cache
+    apt: update_cache=yes
   - name: install dependencies
-    yum: pkg={{item}} state=latest
+    apt: name={{item}} state=latest
     with_items:
       - rsync
-      - firewalld
+      - ufw
       - sudo
-  - name: enabling firewalld
-    service: name=firewalld.service enabled=yes state=started
+  - name: enable ufw
+    ufw: state=enabled policy=reject
+  - name: enable ssh in firewall
+    ufw: rule=limit port=ssh
   - name: copy juiz runtime
     synchronize: src={{runtime}}/ dest={{runtime_dir}} recursive=yes delete=yes
   - name: clear environment directory
