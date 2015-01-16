@@ -13,6 +13,10 @@ class Machine(object):
 		driver = project.get_driver()
 		return driver.get_ip(self.name)
 
+	def get_node(self, project):
+		driver = project.get_driver()
+		return driver.get_node(self.name)
+
 	@classmethod
 	def from_config(cls, name, config):
 		machine = cls(name)

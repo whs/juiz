@@ -14,6 +14,7 @@ from .EditMachine import EditMachine
 from .BuildpackList import BuildpackList
 from .GetIPDialog import GetIPDialog
 from .ProjectConfig import ProjectConfig
+from .DestroyDialog import DestroyDialog
 from . import util as gui_util
 
 class Main(MainGen):
@@ -48,6 +49,9 @@ class Main(MainGen):
 		self.Connect(self.ids['bp_manage'], -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_buildpack)
 		self.Connect(wx.ID_ABOUT, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_about)
 		self.Connect(self.ids['run_cmd'], -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.run_cmd)
+		self.Connect(wx.ID_EDIT, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.edit_cmd)
+		self.Connect(wx.ID_REMOVE, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.remove_cmd)
+		self.Connect(wx.ID_DELETE, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.destroy_cmd)
 		
 		if self.project:
 			self.Connect(wx.ID_SAVE, -1, wx.wxEVT_COMMAND_MENU_SELECTED, self.menu_save)
@@ -135,6 +139,9 @@ class Main(MainGen):
 		self._last_context = event.GetItem()
 
 		menu = wx.Menu(event.GetItem().GetText())
+		menu.Append(wx.ID_EDIT, _('&Edit'))
+		menu.Append(wx.ID_REMOVE, _('&Remove'))
+		menu.Append(wx.ID_DELETE, _('&Destroy machine'))
 		menu.Append(self.ids['run_cmd'], _('&Run command'))
 		self.PopupMenu(menu, point)
 		menu.Destroy()
@@ -181,6 +188,9 @@ class Main(MainGen):
 			wx.MessageDialog(self, _('No machine selected'), _('Edit machine'), wx.ICON_ASTERISK).ShowWindowModal()
 			return
 
+		self._show_edit(machine)
+
+	def _show_edit(self, machine):
 		key = 'edit_{}'.format(machine.name)
 
 		if key not in self._singleton_wnd or not self._singleton_wnd[key]:
@@ -192,6 +202,9 @@ class Main(MainGen):
 
 	def remove_machine(self, event):
 		machine = self.get_selected_machine_name()
+		self._remove_machine(machine)
+
+	def _remove_machine(self, machine):
 		if not machine:
 			wx.MessageDialog(self, _('No machine selected'), _('Remove machine'), wx.ICON_ASTERISK).ShowWindowModal()
 			return
@@ -217,19 +230,29 @@ class Main(MainGen):
 
 		return [x for x in self.project.list_machines() if x.name == machine][0]
 
+	def edit_cmd(self, evt):
+		if not self._last_context:
+			return
+
+		machine = self.project.get_machine(self._last_context.GetText())
+		self._show_edit(machine)
+
+	def remove_cmd(self, evt):
+		if not self._last_context:
+			return
+
+		machine = self._last_context.GetText()
+		self._remove_machine(machine)
+
 	def run_cmd(self, evt):
 		if not self._last_context:
 			return
 
 		machine = self.project.get_machine(self._last_context.GetText())
-		ip_dialog = GetIPDialog(self.project, machine)
-		if ip_dialog.ShowModal() == 0 or ip_dialog.ip == None:
-			wx.MessageDialog(self, _('IP of {} cannot be determined').format(machine.name), _('Cannot get IP'), wx.OK | wx.CENTER | wx.ICON_EXCLAMATION).ShowWindowModal()
-			ip_dialog.Destroy()
+		ip = self._get_node(machine)
+		if not ip:
 			return
-
-		ip = ip_dialog.ip
-		ip_dialog.Destroy()
+		ip = ip[0]
 
 		dialog = wx.TextEntryDialog(self, _('Enter command. Web application is deployed at /app.'), _('Run command on {ip}'.format(ip=ip_dialog.ip)), 'bash')
 
@@ -240,3 +263,30 @@ class Main(MainGen):
 				cmd = pipes.quote(dialog.GetValue())
 			)
 			gui_util.run_terminal(cmd)
+
+	def destroy_cmd(self, evt):
+		if not self._last_context:
+			return
+
+		machine = self.project.get_machine(self._last_context.GetText())
+
+		if wx.MessageBox(_('Do you want to destroy {}?').format(machine.name), _('Destroy'), wx.YES_NO | wx.ICON_QUESTION) == wx.NO:
+			return
+
+		ip = self._get_node(machine)
+		if not ip:
+			return
+		node = ip[1]
+		DestroyDialog(node).ShowModal()
+
+
+
+	def _get_node(self, machine):
+		ip_dialog = GetIPDialog(self.project, machine)
+		if ip_dialog.ShowModal() == 0 or ip_dialog.ip == None:
+			wx.MessageDialog(self, _('IP of {} cannot be determined').format(machine.name), _('Cannot get IP'), wx.OK | wx.CENTER | wx.ICON_EXCLAMATION).ShowWindowModal()
+			ip_dialog.Destroy()
+			return
+
+		ip_dialog.Destroy()
+		return ip_dialog.ip, ip_dialog.node
