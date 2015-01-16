@@ -6,8 +6,10 @@
     with_items:
       - python-mysqldb
       - mariadb-server
+  - name: copy configuration
+    copy: src=../data/mysql/my.cnf dest=/etc/mysql/my.cnf
   - name: start mariadb
-    service: name=mysql enabled=yes state=started
+    service: name=mysql enabled=yes state=restarted
 
   # root securing
   - name: secure root password (trying default root password)

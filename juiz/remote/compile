@@ -1,14 +1,12 @@
 #!/bin/bash
 
-set -e
-
 BUILDPACK_PATH=/var/juiz/buildpack
 export STACK=cedar-14
 
-rm -r /app > /dev/null 2>&1 || true
+rm -rf /app > /dev/null 2>&1 || true
 mkdir /app
 $BUILDPACK_PATH/bin/compile $* | tee /var/juiz/compile.log
-rm -r /app
+rm -rf /app
 
 cp -r $1 /app
 chown -R app /app

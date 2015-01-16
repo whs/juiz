@@ -16,6 +16,7 @@
       - python-jinja2
       - nginx
       - libpq5 # php implicitly requires this
+      - libpq-dev
       - libltdl7 # php implicitly requires this
       # libmariadbclient-dev cause compilation error
       # see: https://mariadb.atlassian.net/browse/MDEV-6862
