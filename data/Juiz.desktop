@@ -1,0 +1,8 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Name=Juiz
+Comment=Desktop PaaS
+Exec=juiz gui
+Type=Application
+Terminal=false
+Categories=Programming

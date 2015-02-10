@@ -2,3 +2,7 @@
 *.pyc
 *~
 .juiz
+*.egg
+build/
+dist/
+*.egg-info/
